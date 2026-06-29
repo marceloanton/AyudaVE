@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="AyudaVE centraliza reportes comunitarios, puntos de ayuda, refugios, centros de acopio y alertas del terremoto en Venezuela."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="author" content="AyudaVE" />
+    <meta
+      name="keywords"
+      content="AyudaVE, Venezuela, terremoto Venezuela, ayuda Venezuela, refugios Venezuela, centros de acopio Venezuela, reportes comunitarios, mapa de ayuda"
+    />
+    <meta name="theme-color" content="#0f766e" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AyudaVE" />
+    <meta property="og:title" content="AyudaVE | Mapa de ayuda y reportes del terremoto en Venezuela" />
+    <meta
+      property="og:description"
+      content="Mapa operativo con reportes comunitarios, puntos de ayuda, refugios, centros de acopio y datos sincronizados de fuentes públicas."
+    />
+    <meta property="og:url" content="http://ayudave.mranalytics.info/" />
+    <meta property="og:image" content="http://ayudave.mranalytics.info/assets/icon.svg" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="AyudaVE | Mapa de ayuda en Venezuela" />
+    <meta
+      name="twitter:description"
+      content="Reporta necesidades, ubica puntos de ayuda y consulta fuentes sincronizadas del terremoto en Venezuela."
+    />
+    <link rel="canonical" href="http://ayudave.mranalytics.info/" />
+    <link rel="alternate" type="application/json" href="http://ayudave.mranalytics.info/api.php?action=export_public" title="AyudaVE public JSON feed" />
+    <link rel="service-desc" type="application/openapi+json" href="http://ayudave.mranalytics.info/openapi.json" />
+    <link rel="help" href="http://ayudave.mranalytics.info/como-reportar-ayuda-venezuela.html" />
+    <title>AyudaVE | Mapa de ayuda y reportes del terremoto en Venezuela</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AyudaVE",
+        "url": "http://ayudave.mranalytics.info/",
+        "applicationCategory": "PublicSafetyApplication",
+        "operatingSystem": "Web",
+        "description": "Mapa operativo de ayuda para Venezuela con reportes comunitarios, refugios, centros de acopio, puntos de ayuda y alertas.",
+        "inLanguage": ["es", "en", "pt"],
+        "areaServed": {
+          "@type": "Country",
+          "name": "Venezuela"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <main>
+        <h1>AyudaVE: mapa de ayuda y reportes del terremoto en Venezuela</h1>
+        <p>
+          AyudaVE ayuda a ubicar reportes comunitarios, refugios, centros de acopio,
+          puntos de ayuda, alimentos, agua, medicina, traslados y energia/senal en Venezuela.
+        </p>
+        <p>
+          La plataforma sincroniza datos publicos de fuentes como centros de acopio,
+          Venezuela Reporta, Refugios Venezuela y reportes comunitarios. Para usar el mapa
+          interactivo necesitas activar JavaScript.
+        </p>
+      </main>
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="./src/public-main.jsx"></script>
+  </body>
+</html>

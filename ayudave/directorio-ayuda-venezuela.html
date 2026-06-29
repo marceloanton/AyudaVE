@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Directorio de ayuda en Venezuela | AyudaVE</title>
+    <meta
+      name="description"
+      content="Directorio AyudaVE de refugios, centros de acopio, puntos de comida, agua, medicina, energia y traslado en Venezuela."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="http://ayudave.mranalytics.info/directorio-ayuda-venezuela.html" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <style>
+      body { margin: 0; font-family: Inter, "Segoe UI", Arial, sans-serif; color: #18292e; background: #eef4f6; }
+      main { max-width: 920px; margin: 0 auto; padding: 42px 20px; }
+      article { background: #fff; border: 1px solid #d8e2e6; border-radius: 8px; padding: 24px; margin-bottom: 18px; }
+      h1, h2 { color: #00576a; }
+      h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; margin: 0 0 14px; }
+      p, li { line-height: 1.65; }
+      a.button { display: inline-block; background: #006f85; color: #fff; padding: 12px 18px; border-radius: 6px; font-weight: 800; text-decoration: none; }
+      a { color: #006f85; font-weight: 700; }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": "AyudaVE directorio de puntos de ayuda",
+        "url": "http://ayudave.mranalytics.info/api.php?action=export_public",
+        "description": "Puntos de ayuda, refugios y centros de acopio sincronizados desde fuentes publicas para Venezuela.",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "spatialCoverage": {
+          "@type": "Place",
+          "name": "Venezuela"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main>
+      <article>
+        <h1>Directorio de ayuda en Venezuela</h1>
+        <p>
+          Consulta puntos de ayuda disponibles: centros de acopio, refugios, comida,
+          agua, medicina, energia, senal y traslados.
+        </p>
+        <p><a class="button" href="./#directorio">Abrir directorio interactivo</a></p>
+      </article>
+      <article>
+        <h2>Fuentes sincronizadas</h2>
+        <p>
+          El directorio combina fuentes publicas como Centros de Acopio VE, Venezuela
+          Reporta y Refugios Venezuela. Cada punto conserva su fuente y estado de validacion.
+        </p>
+        <p>
+          Para reutilizar los datos, usa el feed publico:
+          <a href="./api.php?action=export_public">api.php?action=export_public</a>.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

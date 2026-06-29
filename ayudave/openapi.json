@@ -1,0 +1,383 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AyudaVE Public API",
+    "version": "1.0.0",
+    "description": "Public synchronization endpoints for AyudaVE reports, aid points, metadata and CSV exports, plus private community registration intake. Public exports redact personal contacts and preserve source attribution.",
+    "contact": {
+      "name": "AyudaVE",
+      "url": "http://ayudave.mranalytics.info/"
+    },
+    "license": {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://ayudave.mranalytics.info",
+      "description": "AyudaVE production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Public data",
+      "description": "Read-only endpoints for synchronization and attribution."
+    },
+    {
+      "name": "Private intake",
+      "description": "Write-only community registration endpoint. These records are not included in public exports."
+    }
+  ],
+  "paths": {
+    "/api.php": {
+      "get": {
+        "tags": ["Public data"],
+        "summary": "Read AyudaVE public API actions.",
+        "description": "Use action=metadata for API metadata, action=sync_status for source freshness, action=export_public for JSON synchronization, or action=export_csv with dataset=reports/helpPoints for CSV downloads.",
+        "parameters": [
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["metadata", "sync_status", "export_public", "export_csv"]
+            },
+            "examples": {
+              "metadata": { "value": "metadata" },
+              "syncStatus": { "value": "sync_status" },
+              "json": { "value": "export_public" },
+              "csv": { "value": "export_csv" }
+            }
+          },
+          {
+            "name": "dataset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["reports", "helpPoints"]
+            },
+            "description": "Required only when action=export_csv."
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Optional ISO 8601 timestamp for action=export_public. When present, AyudaVE returns only records changed at or after this time. Alias: updated_since.",
+            "example": "2026-06-28T00:00:00Z"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON metadata, JSON public export or CSV content depending on query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/MetadataResponse" },
+                    { "$ref": "#/components/schemas/SyncStatusResponse" },
+                    { "$ref": "#/components/schemas/PublicExportResponse" }
+                  ]
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Private intake"],
+        "summary": "Register a collaborator or aid point for private moderation.",
+        "description": "Use action=register_member to send minimal collaborator data. Contact details are stored for moderation and are not exposed in public maps or open-data exports.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterMemberRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration accepted for validation.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RegisterMemberResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing required fields or privacy consent."
+          }
+        }
+      }
+    },
+    "/sources.json": {
+      "get": {
+        "tags": ["Public data"],
+        "summary": "Read external source attribution registry.",
+        "responses": {
+          "200": {
+            "description": "Source registry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ayudave-public-export.schema.json": {
+      "get": {
+        "tags": ["Public data"],
+        "summary": "Read JSON Schema for export_public.",
+        "responses": {
+          "200": {
+            "description": "JSON Schema document.",
+            "content": {
+              "application/schema+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterMemberRequest": {
+        "type": "object",
+        "required": ["action", "alias", "role", "area", "privacyConsent"],
+        "properties": {
+          "action": { "type": "string", "enum": ["register_member"] },
+          "alias": { "type": "string", "maxLength": 80 },
+          "role": {
+            "type": "string",
+            "enum": ["voluntario", "punto_ayuda", "salud", "transporte", "verificador"]
+          },
+          "area": { "type": "string", "maxLength": 160 },
+          "availability": { "type": "string", "maxLength": 120 },
+          "contactType": {
+            "type": "string",
+            "enum": ["whatsapp", "telefono", "email", "otro"]
+          },
+          "contact": {
+            "type": "string",
+            "maxLength": 180,
+            "description": "Private contact for moderation only. It is not included in public exports."
+          },
+          "notes": { "type": "string", "maxLength": 260 },
+          "privacyConsent": { "type": "boolean" }
+        }
+      },
+      "RegisterMemberResponse": {
+        "type": "object",
+        "required": ["ok", "member"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "member": { "$ref": "#/components/schemas/CommunityMember" }
+        }
+      },
+      "CommunityMember": {
+        "type": "object",
+        "required": ["id", "alias", "role", "area", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "alias": { "type": "string" },
+          "role": { "type": "string" },
+          "area": { "type": "string" },
+          "availability": { "type": "string" },
+          "contactType": { "type": "string" },
+          "contactMasked": { "type": "string" },
+          "notes": { "type": "string" },
+          "status": { "type": "string", "enum": ["Sin validar", "Confirmado", "Resuelto", "Pendiente local"] },
+          "source": { "type": "string" },
+          "privacyConsent": { "type": "boolean" },
+          "createdAt": { "type": "string" }
+        }
+      },
+      "MetadataResponse": {
+        "type": "object",
+        "required": ["ok", "schema", "baseUrl", "license", "usage", "exports", "statuses", "trustLevels", "privacy", "sources"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "schema": { "type": "string", "enum": ["ayudave-public-metadata-v1"] },
+          "generatedAt": { "type": "string", "format": "date-time" },
+          "source": { "type": "string" },
+          "baseUrl": { "type": "string", "format": "uri" },
+          "license": { "$ref": "#/components/schemas/License" },
+          "usage": { "$ref": "#/components/schemas/UsagePolicy" },
+          "exports": {
+            "type": "object",
+            "properties": {
+              "json": { "type": "string", "format": "uri" },
+              "csvReports": { "type": "string", "format": "uri" },
+              "csvHelpPoints": { "type": "string", "format": "uri" },
+              "syncStatus": { "type": "string", "format": "uri" },
+              "schema": { "type": "string", "format": "uri" },
+              "openapi": { "type": "string", "format": "uri" },
+              "enabled": { "type": "boolean" }
+            }
+          },
+          "statuses": { "type": "object", "additionalProperties": { "type": "string" } },
+          "trustLevels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "privacy": { "type": "object", "additionalProperties": true },
+          "sources": { "type": "array", "items": { "type": "object" } },
+          "sourcesUpdatedAt": { "type": ["string", "null"] }
+        }
+      },
+      "SyncStatusResponse": {
+        "type": "object",
+        "required": ["ok", "schema", "generatedAt", "source", "database", "totalRecords", "cron", "sources"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "schema": { "type": "string", "enum": ["ayudave-sync-status-v1"] },
+          "generatedAt": { "type": "string", "format": "date-time" },
+          "source": { "type": "string" },
+          "database": { "type": "boolean" },
+          "totalRecords": { "type": "integer" },
+          "lastUpdatedAt": { "type": ["string", "null"] },
+          "lastSyncedAt": { "type": ["string", "null"] },
+          "cron": {
+            "type": "object",
+            "properties": {
+              "configured": { "type": "boolean" },
+              "lastRunAt": { "type": ["string", "null"] },
+              "lastStatus": { "type": ["integer", "null"] },
+              "lastOk": { "type": ["boolean", "null"] },
+              "lastSummary": { "type": ["string", "null"] }
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SourceSyncSummary" }
+          }
+        }
+      },
+      "SourceSyncSummary": {
+        "type": "object",
+        "required": ["source", "total", "pending", "confirmed", "resolved"],
+        "properties": {
+          "source": { "type": "string" },
+          "total": { "type": "integer" },
+          "pending": { "type": "integer" },
+          "confirmed": { "type": "integer" },
+          "resolved": { "type": "integer" },
+          "lastSyncedAt": { "type": ["string", "null"] },
+          "lastUpdatedAt": { "type": ["string", "null"] }
+        }
+      },
+      "PublicExportResponse": {
+        "type": "object",
+        "required": ["ok", "schema", "generatedAt", "source", "license", "usage", "reports", "helpPoints"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "schema": { "type": "string", "enum": ["ayudave-public-export-v1"] },
+          "generatedAt": { "type": "string", "format": "date-time" },
+          "source": { "type": "string" },
+          "license": { "$ref": "#/components/schemas/License" },
+          "usage": { "$ref": "#/components/schemas/UsagePolicy" },
+          "mode": { "type": "string", "enum": ["full", "incremental"] },
+          "since": { "type": "string", "format": "date-time", "nullable": true },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "reports": { "type": "integer", "minimum": 0 },
+              "helpPoints": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "reports": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PublicReport" }
+          },
+          "helpPoints": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HelpPoint" }
+          }
+        }
+      },
+      "License": {
+        "type": "object",
+        "required": ["name", "url"],
+        "properties": {
+          "name": { "type": "string", "example": "CC BY 4.0" },
+          "url": { "type": "string", "format": "uri", "example": "https://creativecommons.org/licenses/by/4.0/" }
+        }
+      },
+      "UsagePolicy": {
+        "type": "object",
+        "required": ["attributionRequired", "attributionText", "privacy", "validation"],
+        "properties": {
+          "attributionRequired": { "type": "boolean" },
+          "attributionText": { "type": "string" },
+          "privacy": { "type": "string" },
+          "validation": { "type": "string" }
+        }
+      },
+      "PublicReport": {
+        "type": "object",
+        "required": ["id", "type", "area", "city", "priority", "status", "trustLevel", "trustLabel", "detail", "privacyReview"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["Agua", "Comida", "Medicina", "Refugio", "Traslado", "Energia/senal"] },
+          "area": { "type": "string" },
+          "city": { "type": "string" },
+          "priority": { "type": "string", "enum": ["Alta", "Media", "Baja"] },
+          "status": { "type": "string", "enum": ["Sin validar", "Confirmado", "Resuelto", "Abierto"] },
+          "trustLevel": {
+            "type": "string",
+            "enum": ["verified_origin", "external_pending", "community_confirmed", "community_pending", "resolved"]
+          },
+          "trustLabel": { "type": "string" },
+          "detail": { "type": "string" },
+          "privacyReview": { "type": "boolean" },
+          "lat": { "type": ["number", "null"] },
+          "lng": { "type": ["number", "null"] },
+          "source": { "type": ["string", "null"] },
+          "source_url": { "type": ["string", "null"], "format": "uri" },
+          "external_id": { "type": ["string", "null"] },
+          "createdAt": { "type": ["string", "null"] },
+          "updatedAt": { "type": ["string", "null"] },
+          "syncedAt": { "type": ["string", "null"] }
+        }
+      },
+      "HelpPoint": {
+        "type": "object",
+        "required": ["id", "name", "type", "service", "area", "status", "trustLevel", "trustLabel"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "service": { "type": "string" },
+          "area": { "type": "string" },
+          "status": { "type": "string" },
+          "trustLevel": { "type": "string" },
+          "trustLabel": { "type": "string" },
+          "lat": { "type": ["number", "null"] },
+          "lng": { "type": ["number", "null"] },
+          "source": { "type": ["string", "null"] },
+          "source_url": { "type": ["string", "null"], "format": "uri" },
+          "external_id": { "type": ["string", "null"] },
+          "updatedAt": { "type": ["string", "null"] },
+          "syncedAt": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "AyudaVE public data sources",
+  "updated": "2026-06-28",
+  "public_export": "http://ayudave.mranalytics.info/api.php?action=export_public",
+  "public_export_incremental_example": "http://ayudave.mranalytics.info/api.php?action=export_public&since=2026-06-28T00:00:00Z",
+  "metadata": "http://ayudave.mranalytics.info/api.php?action=metadata",
+  "csv_reports": "http://ayudave.mranalytics.info/api.php?action=export_csv&dataset=reports",
+  "csv_help_points": "http://ayudave.mranalytics.info/api.php?action=export_csv&dataset=helpPoints",
+  "schema": "http://ayudave.mranalytics.info/ayudave-public-export.schema.json",
+  "trust_levels": {
+    "verified_origin": "Dato confirmado por su fuente original.",
+    "external_pending": "Dato de fuente externa que debe validarse localmente.",
+    "community_confirmed": "Dato confirmado por moderacion o seguimiento comunitario.",
+    "community_pending": "Dato comunitario recibido, pendiente de validacion.",
+    "resolved": "Dato marcado como resuelto."
+  },
+  "sources": [
+    {
+      "id": "terremotovenezuela_reports",
+      "name": "Terremoto Venezuela App",
+      "url": "https://terremotovenezuela.app/"
+    },
+    {
+      "id": "centros_acopio",
+      "name": "Centros de Acopio VE",
+      "url": "https://centrosdeacopiove.com/"
+    },
+    {
+      "id": "venezuela_reporta_sitios",
+      "name": "Venezuela Reporta",
+      "url": "https://venezuelareporta.org/api-abierta"
+    },
+    {
+      "id": "refugios_venezuela",
+      "name": "Refugios Venezuela",
+      "url": "https://refugiosvenezuela.com/api"
+    },
+    {
+      "id": "acopios_refugios",
+      "name": "Venezuela Resiste - Acopios y Refugios",
+      "url": "https://acopios-refugios.vercel.app/"
+    }
+  ]
+}

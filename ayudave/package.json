@@ -1,0 +1,29 @@
+{
+  "name": "ayudave",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build && node scripts/copy-server-files.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "check": "eslint .",
+    "verify:local": "powershell -ExecutionPolicy Bypass -File scripts\\verify-local-package.ps1"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "leaflet": "^1.9.4",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-leaflet": "^5.0.0",
+    "tailwindcss": "^4.3.1",
+    "vite": "^7.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0"
+  }
+}

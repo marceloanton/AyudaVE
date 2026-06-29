@@ -1,0 +1,11 @@
+ayudave/config.php
+ayudave/node_modules/
+ayudave/.vite/
+ayudave/data/*
+!ayudave/data/.htaccess
+ayudave/deploy/
+ayudave/dist/
+.codebase-memory/
+.playwright-mcp/
+.agents/
+.codex/

@@ -1,0 +1,138 @@
+import { useMemo, useState } from "react";
+import { needTypes } from "../data/catalog";
+import { Icon } from "./Icon";
+import { RealMap } from "./RealMap";
+
+function hasMapCoordinate(item) {
+  const lat = Number(item.lat);
+  const lng = Number(item.lng);
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -10 && lat <= 16 && lng >= -82 && lng <= -52;
+}
+
+function isConfirmed(item) {
+  return item.status === "Confirmado" || item.status === "Abierto";
+}
+
+function matchesValidationFilter(item, validationFilter) {
+  if (validationFilter === "confirmed") return isConfirmed(item);
+  if (validationFilter === "pending") return item.status === "Sin validar";
+  return true;
+}
+
+export function MapPanel({ currentType, helpPoints, onSelectReport, reports, query, selectedReport, setCurrentType, setQuery, t }) {
+  const [showReports, setShowReports] = useState(true);
+  const [showHelpPoints, setShowHelpPoints] = useState(true);
+  const [validationFilter, setValidationFilter] = useState("all");
+  const filteredReports = useMemo(
+    () => reports.filter((report) => matchesValidationFilter(report, validationFilter)),
+    [reports, validationFilter],
+  );
+  const filteredHelpPoints = useMemo(
+    () => helpPoints.filter((point) => matchesValidationFilter(point, validationFilter)),
+    [helpPoints, validationFilter],
+  );
+  const visibleReportPoints = useMemo(
+    () => (showReports ? filteredReports.filter(hasMapCoordinate) : []),
+    [filteredReports, showReports],
+  );
+  const visibleHelpPoints = useMemo(
+    () => (showHelpPoints ? filteredHelpPoints.filter(hasMapCoordinate) : []),
+    [filteredHelpPoints, showHelpPoints],
+  );
+  const mapCounts = useMemo(
+    () => {
+      const visibleMapItems = [...visibleReportPoints, ...visibleHelpPoints];
+      return {
+        reports: visibleReportPoints.length,
+        help: visibleHelpPoints.length,
+        confirmed: visibleMapItems.filter(isConfirmed).length,
+        pending: visibleMapItems.filter((item) => item.status === "Sin validar").length,
+      };
+    },
+    [visibleHelpPoints, visibleReportPoints],
+  );
+
+  return (
+    <div className="map-panel">
+      <div className="map-search">
+        <Icon name="search" />
+        <input
+          aria-label={t.map.search}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t.map.search}
+          type="search"
+          value={query}
+        />
+      </div>
+      <div className="map-actions">
+        <button
+          aria-pressed={showReports}
+          className={showReports ? "is-active" : ""}
+          onClick={() => setShowReports((value) => !value)}
+          type="button"
+        >
+          <Icon name="sliders" />
+          {t.map.reports}
+        </button>
+        <button
+          aria-pressed={showHelpPoints}
+          className={showHelpPoints ? "is-active" : ""}
+          onClick={() => setShowHelpPoints((value) => !value)}
+          type="button"
+        >
+          <Icon name="layers" />
+          {t.map.helpPoints}
+        </button>
+      </div>
+      <div className="map-type-filter" role="group" aria-label={t.map.filterByType}>
+        {["Todos", ...needTypes].map((type) => (
+          <button
+            aria-pressed={currentType === type}
+            className={currentType === type ? "is-active" : ""}
+            key={type}
+            onClick={() => setCurrentType(type)}
+            type="button"
+          >
+            {type === "Energia/senal" ? t.type(type).split(" / ")[0] : t.type(type)}
+          </button>
+        ))}
+      </div>
+      <div className="map-validation-filter" role="group" aria-label={t.map.filterByValidation}>
+        {[
+          ["all", t.map.validationAll],
+          ["confirmed", t.map.validationConfirmed],
+          ["pending", t.map.validationPending],
+        ].map(([value, label]) => (
+          <button
+            aria-pressed={validationFilter === value}
+            className={validationFilter === value ? "is-active" : ""}
+            key={value}
+            onClick={() => setValidationFilter(value)}
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="map-canvas" aria-label={t.map.canvas}>
+        <RealMap
+          helpPoints={filteredHelpPoints}
+          onSelectReport={onSelectReport}
+          reports={filteredReports}
+          selectedReport={selectedReport}
+          showHelpPoints={showHelpPoints}
+          showReports={showReports}
+          t={t}
+        />
+        <div className="map-legend" aria-label={t.map.summary}>
+          <strong>{mapCounts.reports}</strong>
+          <span>{t.map.reportsWithLocation}</span>
+          <strong>{mapCounts.help}</strong>
+          <span>{t.map.helpPointsLabel}</span>
+          <em className="legend-confirmed">{mapCounts.confirmed} {t.map.confirmedShort}</em>
+          <em className="legend-pending">{mapCounts.pending} {t.map.pendingShort}</em>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,22 @@
+# AyudaVE
+
+AyudaVE is a public emergency-aid web application for Venezuela earthquake response.
+
+Main site: http://ayudave.mranalytics.info/
+Open data feed: http://ayudave.mranalytics.info/api.php?action=export_public
+API metadata: http://ayudave.mranalytics.info/api.php?action=metadata
+Sync status: http://ayudave.mranalytics.info/api.php?action=sync_status
+OpenAPI contract: http://ayudave.mranalytics.info/openapi.json
+Sources index: http://ayudave.mranalytics.info/sources.json
+Sitemap: http://ayudave.mranalytics.info/sitemap.xml
+
+Useful pages:
+- http://ayudave.mranalytics.info/ayuda-terremoto-venezuela.html
+- http://ayudave.mranalytics.info/como-reportar-ayuda-venezuela.html
+- http://ayudave.mranalytics.info/directorio-ayuda-venezuela.html
+- http://ayudave.mranalytics.info/datos-abiertos-ayudave.html
+
+Data policy:
+- Public export excludes private contacts and secrets.
+- Source attribution is preserved when records are synchronized from external public sources.
+- People-missing/person-sensitive data should not be imported into the public map without a separate authenticated privacy workflow.

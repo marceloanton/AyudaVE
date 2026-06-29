@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Datos abiertos AyudaVE | API de ayuda Venezuela</title>
+    <meta
+      name="description"
+      content="Feed publico de AyudaVE para sincronizar reportes, refugios, centros de acopio y puntos de ayuda en Venezuela."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="http://ayudave.mranalytics.info/datos-abiertos-ayudave.html" />
+    <link rel="alternate" type="application/json" href="http://ayudave.mranalytics.info/api.php?action=export_public" title="AyudaVE public JSON feed" />
+    <link rel="service-desc" type="application/openapi+json" href="http://ayudave.mranalytics.info/openapi.json" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <style>
+      body { margin: 0; font-family: Inter, "Segoe UI", Arial, sans-serif; color: #18292e; background: #eef4f6; }
+      main { max-width: 920px; margin: 0 auto; padding: 42px 20px; }
+      section { background: #fff; border: 1px solid #d8e2e6; border-radius: 8px; padding: 24px; margin-bottom: 18px; }
+      h1, h2 { color: #00576a; }
+      h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; margin: 0 0 14px; }
+      code { background: #eef4f6; padding: 2px 5px; border-radius: 4px; }
+      pre { overflow: auto; background: #102a31; color: #e8fbff; padding: 16px; border-radius: 6px; }
+      a { color: #006f85; font-weight: 700; }
+      ul { padding-left: 20px; }
+      li { margin: 8px 0; }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "DataDownload",
+        "name": "AyudaVE export_public",
+        "encodingFormat": "application/json",
+        "contentUrl": "http://ayudave.mranalytics.info/api.php?action=export_public",
+        "license": "https://creativecommons.org/licenses/by/4.0/"
+      }
+    </script>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h1>Datos abiertos AyudaVE</h1>
+        <p>
+          AyudaVE publica un feed JSON para sincronizar reportes comunitarios,
+          refugios, centros de acopio y puntos de ayuda en Venezuela.
+        </p>
+        <p><a href="./api.php?action=export_public">Abrir feed publico</a></p>
+      </section>
+      <section>
+        <h2>Endpoint</h2>
+        <pre><code>GET http://ayudave.mranalytics.info/api.php?action=export_public</code></pre>
+        <p>
+          Sincronizacion incremental:
+          <code>api.php?action=export_public&amp;since=2026-06-28T00:00:00Z</code>
+          devuelve solo registros modificados desde esa fecha ISO 8601. Tambien acepta <code>updated_since</code>.
+        </p>
+        <p>
+          Metadata para integraciones:
+          <a href="./api.php?action=metadata">api.php?action=metadata</a>
+        </p>
+        <p>
+          Estado de sincronizacion:
+          <a href="./api.php?action=sync_status">api.php?action=sync_status</a>
+        </p>
+        <p>
+          El feed excluye contactos personales y secretos. Incluye tipo, area, ciudad,
+          prioridad, estado, nivel de confianza, coordenadas, fuente, URL de fuente e identificador externo.
+        </p>
+        <p>
+          Contrato JSON Schema:
+          <a href="./ayudave-public-export.schema.json">ayudave-public-export.schema.json</a>
+        </p>
+        <p>
+          Contrato OpenAPI:
+          <a href="./openapi.json">openapi.json</a>
+        </p>
+        <p>
+          Descargas CSV:
+          <a href="./api.php?action=export_csv&amp;dataset=reports">reportes</a> ·
+          <a href="./api.php?action=export_csv&amp;dataset=helpPoints">puntos de ayuda</a>
+        </p>
+      </section>
+      <section>
+        <h2>Estados de validacion</h2>
+        <ul>
+          <li><strong>Sin validar:</strong> usar para visibilidad inicial, no para movilizar recursos sin confirmar.</li>
+          <li><strong>Confirmado:</strong> validado por fuente externa o seguimiento comunitario.</li>
+          <li><strong>Resuelto:</strong> necesidad atendida o ya no activa.</li>
+          <li><strong>Abierto:</strong> punto operativo informado por fuente externa.</li>
+        </ul>
+        <h2>Niveles de confianza</h2>
+        <ul>
+          <li><strong>verified_origin:</strong> dato confirmado por su fuente original.</li>
+          <li><strong>external_pending:</strong> dato de fuente externa que debe validarse localmente.</li>
+          <li><strong>community_confirmed:</strong> dato confirmado por moderacion o seguimiento comunitario.</li>
+          <li><strong>community_pending:</strong> dato comunitario recibido, pendiente de validacion.</li>
+          <li><strong>resolved:</strong> dato marcado como resuelto.</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Ejemplo de consumo</h2>
+        <pre><code>const res = await fetch("http://ayudave.mranalytics.info/api.php?action=export_public");
+const data = await res.json();
+
+const puntosConfiables = data.helpPoints.filter((punto) =>
+  ["verified_origin", "community_confirmed"].includes(punto.trustLevel)
+);
+
+const reportesActivos = data.reports.filter((reporte) =>
+  reporte.status !== "Resuelto" && reporte.lat && reporte.lng
+);</code></pre>
+        <p>
+          Si replicas datos, muestra atribucion a AyudaVE y a la fuente original.
+          Revalida condiciones antes de mover recursos.
+        </p>
+      </section>
+      <section>
+        <h2>Fuentes</h2>
+        <p>Consulta <a href="./sources.json">sources.json</a> para ver las fuentes sincronizadas.</p>
+      </section>
+    </main>
+  </body>
+</html>

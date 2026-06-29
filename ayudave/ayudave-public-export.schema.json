@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://ayudave.mranalytics.info/ayudave-public-export.schema.json",
+  "title": "AyudaVE public export",
+  "description": "Contrato publico para sincronizar reportes y puntos de ayuda de AyudaVE sin datos personales.",
+  "type": "object",
+  "required": ["ok", "schema", "generatedAt", "source", "license", "usage", "reports", "helpPoints"],
+  "properties": {
+    "ok": { "const": true },
+    "schema": { "const": "ayudave-public-export-v1" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "source": { "const": "AyudaVE" },
+    "license": { "$ref": "#/$defs/license" },
+    "usage": { "$ref": "#/$defs/usage" },
+    "mode": { "type": "string", "enum": ["full", "incremental"] },
+    "since": { "type": ["string", "null"], "format": "date-time" },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "reports": { "type": "integer", "minimum": 0 },
+        "helpPoints": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "reports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/report" }
+    },
+    "helpPoints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/helpPoint" }
+    }
+  },
+  "$defs": {
+    "license": {
+      "type": "object",
+      "required": ["name", "url"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 80 },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": false
+    },
+    "usage": {
+      "type": "object",
+      "required": ["attributionRequired", "attributionText", "privacy", "validation"],
+      "properties": {
+        "attributionRequired": { "type": "boolean" },
+        "attributionText": { "type": "string", "maxLength": 240 },
+        "privacy": { "type": "string", "maxLength": 360 },
+        "validation": { "type": "string", "maxLength": 360 }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Sin validar", "Confirmado", "Resuelto", "Abierto"]
+    },
+    "needType": {
+      "type": "string",
+      "enum": ["Agua", "Comida", "Medicina", "Refugio", "Traslado", "Energia/senal"]
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["Alta", "Media", "Baja", ""]
+    },
+    "trustLevel": {
+      "type": "string",
+      "enum": ["verified_origin", "external_pending", "community_confirmed", "community_pending", "resolved"]
+    },
+    "coordinates": {
+      "type": ["number", "null"],
+      "minimum": -180,
+      "maximum": 180
+    },
+    "report": {
+      "type": "object",
+      "required": ["id", "type", "area", "city", "priority", "status", "trustLevel", "trustLabel", "detail", "lat", "lng"],
+      "properties": {
+        "id": { "type": "string", "maxLength": 120 },
+        "type": { "$ref": "#/$defs/needType" },
+        "area": { "type": "string", "maxLength": 180 },
+        "city": { "type": "string", "maxLength": 120 },
+        "priority": { "$ref": "#/$defs/priority" },
+        "status": { "$ref": "#/$defs/status" },
+        "trustLevel": { "$ref": "#/$defs/trustLevel" },
+        "trustLabel": { "type": "string", "maxLength": 80 },
+        "detail": { "type": "string", "maxLength": 420 },
+        "privacyReview": { "type": "boolean" },
+        "lat": { "$ref": "#/$defs/coordinates" },
+        "lng": { "$ref": "#/$defs/coordinates" },
+        "source": { "type": ["string", "null"], "maxLength": 120 },
+        "source_url": { "type": ["string", "null"], "format": "uri" },
+        "external_id": { "type": ["string", "null"], "maxLength": 160 },
+        "createdAt": { "type": ["string", "null"] },
+        "updatedAt": { "type": ["string", "null"] },
+        "syncedAt": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "helpPoint": {
+      "type": "object",
+      "required": ["id", "name", "type", "service", "area", "status", "trustLevel", "trustLabel", "lat", "lng"],
+      "properties": {
+        "id": { "type": "string", "maxLength": 120 },
+        "name": { "type": "string", "maxLength": 180 },
+        "type": { "$ref": "#/$defs/needType" },
+        "service": { "type": "string", "maxLength": 420 },
+        "area": { "type": "string", "maxLength": 160 },
+        "status": { "$ref": "#/$defs/status" },
+        "trustLevel": { "$ref": "#/$defs/trustLevel" },
+        "trustLabel": { "type": "string", "maxLength": 80 },
+        "lat": { "$ref": "#/$defs/coordinates" },
+        "lng": { "$ref": "#/$defs/coordinates" },
+        "source": { "type": ["string", "null"], "maxLength": 120 },
+        "source_url": { "type": ["string", "null"], "format": "uri" },
+        "external_id": { "type": ["string", "null"], "maxLength": 160 },
+        "updatedAt": { "type": ["string", "null"] },
+        "syncedAt": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    }
+  }
+}
