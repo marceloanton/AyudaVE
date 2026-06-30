@@ -2618,12 +2618,19 @@
     left: 14px;
     top: 64px;
     max-width: calc(100% - 28px);
+    padding: 4px;
   }
 
   .map-validation-filter {
     left: 14px;
     top: 100px;
     max-width: calc(100% - 28px);
+    padding: 4px;
+  }
+
+  .map-type-filter button,
+  .map-validation-filter button {
+    padding: 4px 8px;
   }
 
   .content-grid {
