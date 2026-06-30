@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "./Icon";
+import { referenceSources } from "../data/catalog";
 
 function getSiteUrl() {
   return `${window.location.origin}${window.location.pathname}`;
@@ -11,6 +12,7 @@ const externalSources = [
   "venezuelareporta.org",
   "refugiosvenezuela.com",
   "acopios-refugios.vercel.app",
+  ...referenceSources.map((source) => `${source.name} (${source.sync})`),
 ];
 
 function copyText(text) {

@@ -2,7 +2,7 @@ import { Icon } from "./Icon";
 import { FieldMode } from "./FieldMode";
 import { CommunityRegister } from "./CommunityRegister";
 import { SourceTrustPanel } from "./SourceTrustPanel";
-import { emergencyContacts, internationalAidCountries, needTypes } from "../data/catalog";
+import { emergencyContacts, internationalAidCountries, needTypes, referenceSources } from "../data/catalog";
 import { typeClass } from "../lib/report-utils";
 
 export function HelpGuide({ helpPoints, onNavigate, onStartReport, reports, syncStatus, t }) {
@@ -92,6 +92,21 @@ export function HelpGuide({ helpPoints, onNavigate, onStartReport, reports, sync
           <div className="country-list">
             {internationalAidCountries.map((country) => (
               <span key={country}>{country}</span>
+            ))}
+          </div>
+        </article>
+
+        <article className="guide-card guide-card-wide reference-sources-card">
+          <h2>{t.helpGuide.referenceSourcesTitle}</h2>
+          <p>{t.helpGuide.referenceSourcesBody}</p>
+          <div className="reference-source-list">
+            {referenceSources.map((source) => (
+              <a href={source.url} key={source.name} rel="noreferrer" target="_blank">
+                <strong>{source.name}</strong>
+                <span>{source.scope}</span>
+                <small>{source.use}</small>
+                <em>{source.sync}</em>
+              </a>
             ))}
           </div>
         </article>

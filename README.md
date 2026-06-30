@@ -1,6 +1,6 @@
 # AyudaVE
 
-AyudaVE es una web operativa para coordinar ayuda comunitaria en Venezuela: reportes de necesidades, mapa, directorio de puntos de ayuda, sincronizacion de fuentes externas, datos abiertos y registro privado de colaboradores.
+AyudaVE es una web operativa para coordinar ayuda comunitaria: reportes de necesidades, mapa, directorio de puntos de ayuda, sincronizacion de fuentes externas, datos abiertos y registro privado de colaboradores. Nacio para Venezuela, pero la base puede adaptarse a otros paises, ciudades o emergencias cambiando fuentes, telefonos, textos y configuracion.
 
 La aplicacion esta en [`ayudave/`](ayudave/).
 

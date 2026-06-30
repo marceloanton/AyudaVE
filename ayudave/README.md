@@ -1,6 +1,6 @@
 # AyudaVE
 
-Aplicacion React + Tailwind con backend PHP opcional para coordinar reportes comunitarios, puntos de ayuda, fuentes sincronizadas, datos abiertos y registro privado de colaboradores.
+Aplicacion React + Tailwind con backend PHP opcional para coordinar reportes comunitarios, puntos de ayuda, fuentes sincronizadas, datos abiertos y registro privado de colaboradores. El despliegue actual esta orientado a Venezuela, pero la app esta pensada para poder replicarse en otros paises o emergencias ajustando catalogos, fuentes, telefonos y configuracion publica.
 
 ## Desarrollo
 

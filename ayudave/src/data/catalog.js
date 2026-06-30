@@ -172,3 +172,34 @@ export const internationalAidCountries = [
   "Peru",
   "Uruguay",
 ];
+
+export const referenceSources = [
+  {
+    name: "AcopioVE",
+    url: "https://acopiove.org/",
+    scope: "Venezuela y diaspora",
+    use: "Centros de acopio, refugios y techo solidario. Priorizar como puntos de ayuda con fuente externa.",
+    sync: "Revisar API/datos publicos antes de sincronizar.",
+  },
+  {
+    name: "VZLA Ayuda",
+    url: "https://vzlayuda.com/",
+    scope: "Solicitudes y ofrecimientos comunitarios",
+    use: "Referencia para derivar usuarios y detectar zonas activas.",
+    sync: "No importar automaticamente hasta tener API o permiso por riesgo de contactos personales.",
+  },
+  {
+    name: "Hazlo Hoy - Venezuela Ayuda",
+    url: "https://venezuela-ayuda.vercel.app/",
+    scope: "Mapa, solicitudes, voluntarios y centros de acopio",
+    use: "Comparar estado de mapa, telefonos de emergencia y medidas de apoyo.",
+    sync: "Usar solo vistas publicas/API documentada; no mezclar personas desaparecidas con reportes de ayuda.",
+  },
+  {
+    name: "Info Venezuela Terremoto 2026",
+    url: "https://infovenezuelaterremoto2026.vercel.app/docs",
+    scope: "API de centros de acopio",
+    use: "Candidata para puntos de ayuda si la documentacion sigue disponible.",
+    sync: "A validar tecnicamente antes de activar cron.",
+  },
+];

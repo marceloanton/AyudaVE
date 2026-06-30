@@ -1781,6 +1781,40 @@
     @apply rounded-full bg-[#e7f5f8] px-2.5 py-1 text-xs font-black text-ayuda-teal-dark;
   }
 
+  .reference-sources-card p {
+    @apply text-sm leading-normal text-ayuda-muted;
+  }
+
+  .reference-source-list {
+    @apply grid gap-2;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .reference-source-list a {
+    @apply grid min-h-[138px] content-start gap-1.5 rounded border border-ayuda-line bg-[#f8fbfc] p-3 text-ayuda-text no-underline transition;
+  }
+
+  .reference-source-list a:hover {
+    @apply border-ayuda-teal bg-[#eff9fb];
+  }
+
+  .reference-source-list strong {
+    @apply text-base text-ayuda-teal-dark;
+  }
+
+  .reference-source-list span {
+    @apply text-xs font-black uppercase text-ayuda-blue;
+  }
+
+  .reference-source-list small,
+  .reference-source-list em {
+    @apply text-xs leading-normal text-ayuda-muted;
+  }
+
+  .reference-source-list em {
+    @apply not-italic text-ayuda-red;
+  }
+
   .admin-shell {
     @apply mx-auto w-full max-w-[1180px] p-6;
   }

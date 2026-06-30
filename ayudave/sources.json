@@ -1,6 +1,6 @@
 {
   "name": "AyudaVE public data sources",
-  "updated": "2026-06-28",
+  "updated": "2026-06-30",
   "public_export": "https://example.org/api.php?action=export_public",
   "public_export_incremental_example": "https://example.org/api.php?action=export_public&since=2026-06-28T00:00:00Z",
   "metadata": "https://example.org/api.php?action=metadata",
@@ -39,6 +39,34 @@
       "id": "acopios_refugios",
       "name": "Venezuela Resiste - Acopios y Refugios",
       "url": "https://acopios-refugios.vercel.app/"
+    },
+    {
+      "id": "acopiove",
+      "name": "AcopioVE",
+      "url": "https://acopiove.org/",
+      "sync": "review_before_enable",
+      "privacy": "Sincronizar solo puntos publicos de ayuda. No publicar contactos personales sin permiso."
+    },
+    {
+      "id": "vzla_ayuda",
+      "name": "VZLA Ayuda",
+      "url": "https://vzlayuda.com/",
+      "sync": "manual_reference",
+      "privacy": "No importar automaticamente solicitudes u ofrecimientos hasta tener API publica o permiso claro."
+    },
+    {
+      "id": "hazlo_hoy_venezuela_ayuda",
+      "name": "Hazlo Hoy - Venezuela Ayuda",
+      "url": "https://venezuela-ayuda.vercel.app/",
+      "sync": "manual_reference",
+      "privacy": "Usar para contrastar mapas, telefonos y medidas de apoyo. No mezclar personas desaparecidas con reportes de ayuda."
+    },
+    {
+      "id": "info_venezuela_terremoto_2026",
+      "name": "Info Venezuela Terremoto 2026",
+      "url": "https://infovenezuelaterremoto2026.vercel.app/docs",
+      "sync": "review_before_enable",
+      "privacy": "Activar solo si la documentacion y la licencia permiten republicar puntos de ayuda."
     }
   ]
 }

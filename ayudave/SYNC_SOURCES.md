@@ -3,6 +3,8 @@
 Relevamiento hecho el 2026-06-28. Toda fuente externa debe entrar como
 `Sin validar` salvo que sea una entidad institucional o una fuente ya moderada.
 No guardar telefonos, emails ni contactos personales en vistas publicas.
+Actualizado el 2026-06-30 para separar fuentes sincronizables, referencias
+manuales y posibles extensiones regionales fuera de Venezuela.
 
 ## Fuentes recomendadas
 
@@ -16,6 +18,8 @@ No guardar telefonos, emails ni contactos personales en vistas publicas.
 | centrosdeacopiove.com | `https://centrosdeacopiove.com/voluntarios-proxy.php` | Voluntarios | 1000 voluntarios | No publicar contactos personales. Usar solo para derivacion privada/admin. |
 | acopios-refugios.vercel.app | Apps Script JSONP | Acopios y refugios moderados | 203 puntos: 174 acopios, 29 refugios | Importar como puntos de ayuda. Respeta columnas publicas del origen. |
 | ayuda-venezuela.talosware.com.ve | Google Sheet CSV | Centros/puntos de ayuda | 144 filas | Importar como puntos de ayuda, deduplicando contra centrosdeacopiove. |
+| acopiove.org | Sitio/API a revisar | Acopios, refugios y techo solidario | No contado en esta pasada | Candidato para puntos de ayuda regionales. Activar solo despues de confirmar API/licencia. |
+| infovenezuelaterremoto2026.vercel.app/docs | API documentada a revisar | Centros de acopio | No contado en esta pasada | Candidato para sincronizar puntos publicos si la documentacion sigue operativa. |
 
 ## Fuentes viables pero con cautela
 
@@ -26,6 +30,29 @@ No guardar telefonos, emails ni contactos personales en vistas publicas.
 | terremotovenezuela2026.vercel.app | No usar por ahora | El script de Venezuela Ayuda indica que su API devuelve `410 Gone`. |
 | reportavnzla.com | Requiere revision posterior | Tiene repo publico y usa Neon/Postgres. No se encontro API publica directa en la primera pasada. |
 | veneconnect.com/apoyo-terremoto | Referencia manual | Tiene datos embebidos de fundaciones/acopios, pero no se detecto array facil de centros en la primera pasada. |
+
+## Referencias manuales / no sincronizar todavia
+
+| Fuente | Uso recomendado | Por que no sincronizar automaticamente |
+| --- | --- | --- |
+| vzlayuda.com | Enlazar como referencia comunitaria para solicitudes y ofrecimientos. | Puede contener datos de contacto o situaciones personales. No se encontro API publica documentada. |
+| venezuela-ayuda.vercel.app | Comparar mapa, telefonos, medidas de apoyo y fuentes activas. | No importar personas desaparecidas ni voluntarios directos en AyudaVE. Solo usar API publica con atribucion y privacidad. |
+| Hazlo Hoy / hzl.app | Fuente de contexto y telefonos de emergencia. | Enlazar como informacion externa; no copiar contenido sensible ni contactos personales. |
+
+## Alcance regional
+
+AyudaVE debe poder reutilizarse para otros paises, ciudades o emergencias.
+Para eso cada fuente nueva debe indicar:
+
+- Pais o zona cubierta.
+- Tipo de dato: reporte, punto de ayuda, refugio, acopio, telefono, alerta.
+- Si tiene coordenadas validadas en origen.
+- Si contiene datos personales y que campos deben descartarse.
+- Licencia o permiso de republicacion.
+
+Las instalaciones que no sean Venezuela pueden mantener el mismo codigo y
+cambiar `site_url`, fuentes, idiomas, telefonos de emergencia y paises de
+acopio desde configuracion/datos publicos sin exponer credenciales.
 
 ## Reglas de sincronizacion
 
