@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://ayudave.mranalytics.info/ayudave-public-export.schema.json",
+  "$id": "https://example.org/ayudave-public-export.schema.json",
   "title": "AyudaVE public export",
   "description": "Contrato publico para sincronizar reportes y puntos de ayuda de AyudaVE sin datos personales.",
   "type": "object",
@@ -122,3 +122,4 @@
     }
   }
 }
+

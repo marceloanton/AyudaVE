@@ -32,7 +32,7 @@ No guardar telefonos, emails ni contactos personales en vistas publicas.
 - Guardar `source`, `source_url`, `external_id`, `synced_at` y `status`.
 - Dedupe por `source + external_id` y por clave normalizada de `tipo + nombre + ciudad + coordenadas`.
 - No pisar reportes locales de AyudaVE.
-- No subir `reports.json` local al hosting.
+- No publicar ni versionar `reports.json` local de una instalacion real.
 - No exponer contactos personales de desaparecidos, voluntarios o reportantes.
 - Mostrar etiqueta visible: `Fuente externa - sin validar`.
 - Si la fuente marca algo como encontrado/resuelto, mantenerlo como `Sin validar` salvo fuente confiable o moderacion propia.

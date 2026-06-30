@@ -9,7 +9,6 @@ await cp(join(root, "api.php"), join(dist, "api.php"));
 await cp(join(root, "cron-sync.php"), join(dist, "cron-sync.php"));
 await cp(join(root, "config.sample.php"), join(dist, "config.sample.php"));
 await cp(join(root, "README.md"), join(dist, "README.md"));
-await cp(join(root, "DEPLOY_IONOS.md"), join(dist, "DEPLOY_IONOS.md"));
 await cp(join(root, ".htaccess"), join(dist, ".htaccess"));
 await cp(join(root, "robots.txt"), join(dist, "robots.txt"));
 await cp(join(root, "sitemap.xml"), join(dist, "sitemap.xml"));

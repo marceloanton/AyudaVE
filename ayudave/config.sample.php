@@ -1,7 +1,8 @@
 <?php
 return [
-    // Copiar este archivo como config.php y cambiar el PIN antes de subir a produccion.
-    'site_url' => 'http://ayudave.mranalytics.info',
+    // Copiar este archivo como config.php y cambiar valores antes de publicar.
+    // Usar la URL publica real de tu instalacion, sin slash final.
+    'site_url' => 'https://example.org',
     'admin_pin' => 'cambiar-este-pin',
     'cron_token' => 'cambiar-este-token-largo',
     'sync_sources' => [
@@ -22,10 +23,10 @@ return [
         'refugios_venezuela' => '',
     ],
 
-    // MariaDB/MySQL en IONOS. Completar solo en config.php, no subir secretos a Git.
+    // MariaDB/MySQL. Completar solo en config.php, no subir secretos a Git.
     'db_required' => true,
     'db' => [
-        'host' => 'db0000000000.hosting-data.io',
+        'host' => 'localhost',
         'port' => 3306,
         'database' => 'nombre_real_de_la_base',
         'username' => 'dbu0000000',

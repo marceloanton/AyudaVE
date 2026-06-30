@@ -24,7 +24,11 @@ if ($token === '' || $token === 'cambiar-este-token-largo') {
     exit(1);
 }
 
-$siteUrl = rtrim((string) ($config['site_url'] ?? 'http://ayudave.mranalytics.info'), '/');
+$siteUrl = rtrim((string) ($config['site_url'] ?? ''), '/');
+if ($siteUrl === '') {
+    fwrite(STDERR, "AyudaVE cron: site_url no configurado.\n");
+    exit(1);
+}
 $sources = isset($config['sync_sources']) && is_array($config['sync_sources'])
     ? implode(',', array_map('strval', $config['sync_sources']))
     : '';

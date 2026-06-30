@@ -1,12 +1,12 @@
 {
   "name": "AyudaVE public data sources",
   "updated": "2026-06-28",
-  "public_export": "http://ayudave.mranalytics.info/api.php?action=export_public",
-  "public_export_incremental_example": "http://ayudave.mranalytics.info/api.php?action=export_public&since=2026-06-28T00:00:00Z",
-  "metadata": "http://ayudave.mranalytics.info/api.php?action=metadata",
-  "csv_reports": "http://ayudave.mranalytics.info/api.php?action=export_csv&dataset=reports",
-  "csv_help_points": "http://ayudave.mranalytics.info/api.php?action=export_csv&dataset=helpPoints",
-  "schema": "http://ayudave.mranalytics.info/ayudave-public-export.schema.json",
+  "public_export": "https://example.org/api.php?action=export_public",
+  "public_export_incremental_example": "https://example.org/api.php?action=export_public&since=2026-06-28T00:00:00Z",
+  "metadata": "https://example.org/api.php?action=metadata",
+  "csv_reports": "https://example.org/api.php?action=export_csv&dataset=reports",
+  "csv_help_points": "https://example.org/api.php?action=export_csv&dataset=helpPoints",
+  "schema": "https://example.org/ayudave-public-export.schema.json",
   "trust_levels": {
     "verified_origin": "Dato confirmado por su fuente original.",
     "external_pending": "Dato de fuente externa que debe validarse localmente.",
@@ -42,3 +42,4 @@
     }
   ]
 }
+

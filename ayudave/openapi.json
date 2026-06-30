@@ -6,7 +6,7 @@
     "description": "Public synchronization endpoints for AyudaVE reports, aid points, metadata and CSV exports, plus private community registration intake. Public exports redact personal contacts and preserve source attribution.",
     "contact": {
       "name": "AyudaVE",
-      "url": "http://ayudave.mranalytics.info/"
+      "url": "https://example.org/"
     },
     "license": {
       "name": "CC BY 4.0",
@@ -15,8 +15,8 @@
   },
   "servers": [
     {
-      "url": "http://ayudave.mranalytics.info",
-      "description": "AyudaVE production"
+      "url": "https://example.org",
+      "description": "Example AyudaVE deployment. Replace with your own public URL."
     }
   ],
   "tags": [
@@ -381,3 +381,4 @@
     }
   }
 }
+

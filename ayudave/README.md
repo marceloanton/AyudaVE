@@ -1,6 +1,6 @@
 # AyudaVE
 
-Aplicacion React + Tailwind con backend PHP opcional para IONOS.
+Aplicacion React + Tailwind con backend PHP opcional para coordinar reportes comunitarios, puntos de ayuda, fuentes sincronizadas, datos abiertos y registro privado de colaboradores.
 
 ## Desarrollo
 
@@ -9,6 +9,20 @@ npm install
 npm run dev
 ```
 
+## Configuracion
+
+Copiar `config.sample.php` como `config.php` en el entorno donde vaya a correr el backend.
+
+Configurar como minimo:
+
+- `site_url`: URL publica real de la instalacion, sin slash final.
+- `admin_pin`: PIN privado para entrar a `admin.html`.
+- `cron_token`: token largo para ejecutar sincronizacion automatica.
+- `external_api_keys`: claves publicables o anonimas necesarias para fuentes externas.
+- `db`: credenciales MariaDB/MySQL si se quiere sincronizacion compartida entre usuarios.
+
+`config.php` esta ignorado por Git. No subir PIN, tokens, claves ni credenciales reales.
+
 ## Build
 
 ```powershell
@@ -16,35 +30,23 @@ npm run build
 npm run verify:local
 ```
 
-El build queda en `dist/`. `verify:local` levanta temporalmente el paquete compilado con PHP local, revisa assets, metadatos, datos abiertos, privacidad y fuentes externas antes de subir.
+El build queda en `dist/`. `verify:local` levanta temporalmente el paquete compilado con PHP local, revisa assets, metadatos, datos abiertos, privacidad y endpoints publicos.
 
-## Subida a IONOS
+## Publicacion
 
-1. Ejecutar `npm run build`.
-2. Ejecutar `npm run verify:local`.
-3. Subir el contenido de `dist/` a la carpeta `ayudave` del hosting sin borrar `config.php` ni `data/`.
-4. Crear el subdominio apuntando a esa carpeta.
-5. Copiar `config.sample.php` como `config.php` en el hosting.
-6. Cambiar `site_url`, `admin_pin`, `cron_token` y completar la seccion `db` con la base MariaDB de IONOS.
-7. Abrir `admin.html` para moderar reportes.
+Subir el contenido de `dist/` al directorio publico de cualquier hosting compatible con archivos estaticos + PHP.
+
+Requisitos recomendados:
+
+- PHP 8.1+.
+- MariaDB/MySQL si se quiere persistencia y sincronizacion real.
+- Apache o servidor equivalente que respete `.htaccess`, o reglas equivalentes para bloquear `config.php` y `data/`.
+
+No reemplazar `config.php` ni `data/` durante despliegues de actualizacion. Esos archivos pertenecen a cada instalacion.
 
 ## Acceso admin
 
-El panel esta en `admin.html`. Se entra con el `admin_pin` definido en `config.php`; despues del login, el navegador usa una sesion HttpOnly temporal para confirmar, resolver y sincronizar sin reenviar el PIN en cada accion. Usar el boton `Salir` al terminar la moderacion.
-
-Si SFTP falla, generar un ZIP seguro para el administrador de archivos de IONOS:
-
-```powershell
-.\scripts\package-ionos.ps1
-```
-
-Subir y extraer el ZIP dentro del root `ayudave`. El paquete excluye `config.php` y `data/` para no pisar credenciales ni datos reales.
-
-Despues de subir, verificar produccion:
-
-```powershell
-.\scripts\verify-production.ps1
-```
+El panel esta en `admin.html`. Se entra con `admin_pin` definido en `config.php`; despues del login, el navegador usa una sesion HttpOnly temporal para confirmar, resolver y sincronizar sin reenviar el PIN en cada accion. Usar el boton `Salir` al terminar la moderacion.
 
 ## Datos abiertos
 
@@ -64,27 +66,26 @@ Los endpoints publicos de lectura (`metadata`, `sync_status`, `export_public`, `
 
 ## Cron de sincronizacion
 
-El endpoint web existe en `api.php?action=cron_sync`, pero para IONOS conviene usar el script CLI para no poner el token en el panel:
+Programar el script CLI cada 10 o 15 minutos:
 
 ```bash
-php /ruta/real/a/ayudave/cron-sync.php
+php /ruta/a/ayudave/cron-sync.php
 ```
 
-Programarlo cada 10 o 15 minutos. El script lee `cron_token` desde `config.php`, sincroniza las fuentes configuradas y escribe un resumen en `data/cron-sync.log`.
+El script lee `site_url` y `cron_token` desde `config.php`, sincroniza las fuentes configuradas y escribe un resumen en `data/cron-sync.log`.
 El cron usa `data/cron-sync.lock` y el backend usa `data/sync.lock` para evitar ejecuciones simultaneas.
 
 ## Archivos principales
 
 - `src/`: componentes React.
-- `dist/index.html`: app publica compilada.
-- `dist/admin.html`: moderacion compilada.
-- `dist/api.php`: lectura, creacion y cambio de estado de reportes. Usa MariaDB si `config.php` tiene `db`.
-- `data/.htaccess`: evita lectura directa de datos en Apache/IONOS.
+- `api.php`: lectura, creacion, registro, validacion y sincronizacion. Usa MariaDB/MySQL si `config.php` tiene `db`.
+- `admin.html`: moderacion compilada.
+- `data/.htaccess`: evita lectura directa de datos en Apache.
+- `config.sample.php`: plantilla segura de configuracion.
 
 ## Notas
 
 - Si `api.php` no esta disponible, la app publica sigue funcionando con `localStorage`.
-- No subir un PIN real a Git. `config.php` queda ignorado por `.gitignore`.
-- El campo `database` debe ser el nombre real de la base en IONOS, no la descripcion visible.
-- `api.php` crea la tabla `reports` automaticamente si la conexion MariaDB funciona.
+- `api.php` crea las tablas necesarias automaticamente si la conexion MariaDB/MySQL funciona.
 - `dist/data/reports.json` no se genera en build para no pisar datos reales. `api.php` lo crea si falta.
+- Los archivos SEO (`sitemap.xml`, `llms.txt`, OpenAPI y metadatos) usan `https://example.org` como placeholder. Reemplazarlo por el dominio real de cada instalacion antes de publicar.

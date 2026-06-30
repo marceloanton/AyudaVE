@@ -96,7 +96,7 @@ function respond_csv(string $filename, array $columns, array $rows): void
 function public_base_url(): string
 {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'ayudave.mranalytics.info');
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
     $path = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? ''))), '/');
     return $scheme . '://' . $host . ($path === '' ? '' : $path);
 }

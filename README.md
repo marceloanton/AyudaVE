@@ -6,12 +6,12 @@ La aplicacion esta en [`ayudave/`](ayudave/).
 
 ## Publicacion segura
 
-Este repositorio no incluye `config.php`, credenciales, datos operativos locales ni artefactos de despliegue. Para instalar:
+Este repositorio no incluye `config.php`, credenciales, datos operativos locales ni artefactos de despliegue. Para instalar en cualquier hosting con PHP:
 
 1. Entrar a `ayudave/`.
 2. Ejecutar `npm install`.
 3. Copiar `config.sample.php` como `config.php`.
-4. Completar PIN, token, claves externas y MariaDB en `config.php`.
+4. Completar URL publica, PIN, token, claves externas y MariaDB/MySQL en `config.php`.
 5. Ejecutar `npm run build`.
 
-Ver mas detalles en [`ayudave/README.md`](ayudave/README.md) y [`ayudave/DEPLOY_IONOS.md`](ayudave/DEPLOY_IONOS.md).
+Ver mas detalles en [`ayudave/README.md`](ayudave/README.md).
