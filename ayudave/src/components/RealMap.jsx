@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { redactSensitiveText, trustKey, typeClass } from "../lib/report-utils";
 
 const venezuelaCenter = [8.2, -66.6];
@@ -29,14 +30,16 @@ function toPoint(item) {
 
 function clusterResolution(zoom) {
   if (zoom >= 10) return 0;
-  if (zoom >= 8) return 0.18;
-  if (zoom >= 7) return 0.28;
-  return 0.42;
+  if (zoom >= 9) return 0.16;
+  if (zoom >= 8) return 0.3;
+  if (zoom >= 7) return 0.55;
+  return 0.95;
 }
 
 function clusterPoints(points, zoom) {
   const resolution = clusterResolution(zoom);
   if (!resolution) return { clusters: [], singles: points };
+  const minClusterSize = zoom < 8 ? 2 : 3;
 
   const groups = new Map();
   points.forEach((point) => {
@@ -50,7 +53,7 @@ function clusterPoints(points, zoom) {
   const clusters = [];
   const singles = [];
   groups.forEach((group, key) => {
-    if (group.length < 4) {
+    if (group.length < minClusterSize) {
       singles.push(...group);
       return;
     }
@@ -98,14 +101,22 @@ function FitMap({ disabled, points }) {
   const map = useMap();
 
   useEffect(() => {
+    const isMobile = window.innerWidth <= 820;
+    const fitOptions = {
+      animate: false,
+      maxZoom: 10,
+      paddingBottomRight: [28, 28],
+      paddingTopLeft: [28, isMobile ? 300 : 28],
+    };
+
     if (disabled) return;
     if (points.length === 0) {
-      map.fitBounds(defaultBounds, { animate: false, padding: [18, 18] });
+      map.fitBounds(defaultBounds, fitOptions);
       return;
     }
 
     const bounds = points.map((point) => point.position);
-    map.fitBounds(bounds, { animate: false, maxZoom: 10, padding: [28, 28] });
+    map.fitBounds(bounds, fitOptions);
   }, [disabled, map, points]);
 
   return null;
@@ -144,17 +155,28 @@ function isConfirmed(item) {
 function ClusterMarker({ cluster, t }) {
   const map = useMap();
   const hasUrgent = cluster.urgent > 0;
+  const displayCount = cluster.count > 99 ? "99+" : String(cluster.count);
+  const size = Math.min(64, Math.max(44, 36 + Math.sqrt(cluster.count) * 2.8));
+  const label = `${cluster.count} ${t.map.clusterItems}`;
+  const icon = useMemo(
+    () => L.divIcon({
+      className: "cluster-icon-shell",
+      html: `<div class="cluster-marker ${hasUrgent ? "is-urgent" : ""}" style="--cluster-size:${size}px"><strong>${displayCount}</strong></div>`,
+      iconAnchor: [size / 2, size / 2],
+      iconSize: [size, size],
+      popupAnchor: [0, -size / 2],
+    }),
+    [displayCount, hasUrgent, size],
+  );
 
   return (
-    <CircleMarker
-      center={cluster.position}
-      className="leaflet-cluster"
+    <Marker
+      alt={label}
       eventHandlers={{ click: () => map.setView(cluster.position, Math.min(map.getZoom() + 2, 11), { animate: true }) }}
-      fillColor={hasUrgent ? "#ef4f49" : "#006f85"}
-      fillOpacity={0.82}
+      icon={icon}
       key={cluster.id}
-      pathOptions={{ color: "#ffffff", weight: 3 }}
-      radius={Math.min(24, 10 + Math.sqrt(cluster.count) * 2.8)}
+      position={cluster.position}
+      title={label}
     >
       <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
         <strong>{cluster.count} {t.map.clusterItems}</strong>
@@ -165,10 +187,7 @@ function ClusterMarker({ cluster, t }) {
           {t.map.clusterZoom}
         </button>
       </Popup>
-      <Tooltip className="cluster-count" direction="center" opacity={1} permanent>
-        {cluster.count}
-      </Tooltip>
-    </CircleMarker>
+    </Marker>
   );
 }
 
