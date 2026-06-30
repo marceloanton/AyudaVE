@@ -61,8 +61,10 @@ function withLocalPlaceValidations(points, validations = loadPlaceValidations())
 
 function applyPlaceVote(point, vote) {
   const previousVote = point.userValidation;
+  const isReviewVote = vote === "review" || vote === "incorrect";
+  const wasReviewVote = previousVote === "review" || previousVote === "incorrect";
   const activeDelta = (vote === "active" ? 1 : 0) - (previousVote === "active" ? 1 : 0);
-  const reviewDelta = (vote === "review" ? 1 : 0) - (previousVote === "review" ? 1 : 0);
+  const reviewDelta = (isReviewVote ? 1 : 0) - (wasReviewVote ? 1 : 0);
   const validationActive = Math.max(0, Number(point.validationActive || 0) + activeDelta);
   const validationReview = Math.max(0, Number(point.validationReview || 0) + reviewDelta);
   return {
@@ -70,7 +72,7 @@ function applyPlaceVote(point, vote) {
     validationActive,
     validationReview,
     userValidation: vote,
-    status: vote === "review" ? "Sin validar" : point.status,
+    status: isReviewVote ? "Sin validar" : point.status,
   };
 }
 
@@ -231,7 +233,8 @@ export function PublicApp() {
 
     if (!point.id) return;
     try {
-      const serverPoint = await validateHelpPoint({ id: point.id, vote });
+      const serverVote = vote === "incorrect" ? "review" : vote;
+      const serverPoint = await validateHelpPoint({ id: point.id, vote: serverVote });
       setDirectoryPoints((current) => current.map((item) => (
         pointKey(item) === key || item.id === serverPoint.id
           ? { ...serverPoint, userValidation: vote }

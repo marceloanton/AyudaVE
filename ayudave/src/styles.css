@@ -614,6 +614,19 @@
     color: var(--color-ayuda-teal-dark);
   }
 
+  .leaflet-cluster {
+    filter: drop-shadow(0 3px 8px rgba(0, 87, 106, 0.32));
+  }
+
+  .cluster-count {
+    @apply border-0 bg-transparent p-0 text-sm font-black text-white shadow-none;
+    pointer-events: none;
+  }
+
+  .cluster-count::before {
+    display: none;
+  }
+
   .map-panel .leaflet-top.leaflet-left {
     bottom: 16px !important;
     left: auto !important;
@@ -1018,6 +1031,10 @@
 
   .place-validation-actions button.is-warning {
     @apply border-[#f2d48b] bg-[#fff7df] text-[#7a5800];
+  }
+
+  .place-validation-actions button.is-danger {
+    @apply border-[#ffc8c4] bg-[#fff0ef] text-ayuda-red;
   }
 
   .place-validation.compact {

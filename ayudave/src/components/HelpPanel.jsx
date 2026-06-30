@@ -54,6 +54,13 @@ export function HelpPanel({ helpPoints, onNavigate, onValidatePoint, t }) {
                   >
                     {t.directory.needsReview}
                   </button>
+                  <button
+                    className={point.userValidation === "incorrect" ? "is-danger" : ""}
+                    onClick={() => onValidatePoint(point, "incorrect")}
+                    type="button"
+                  >
+                    {t.directory.incorrect}
+                  </button>
                 </div>
               </div>
             </div>

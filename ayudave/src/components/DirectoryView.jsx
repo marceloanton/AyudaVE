@@ -131,6 +131,13 @@ export function DirectoryView({ helpPoints, onValidatePoint, t }) {
                 >
                   {t.directory.needsReview}
                 </button>
+                <button
+                  className={point.userValidation === "incorrect" ? "is-danger" : ""}
+                  onClick={() => onValidatePoint(point, "incorrect")}
+                  type="button"
+                >
+                  {t.directory.incorrect}
+                </button>
               </div>
               {point.userValidation ? <b>{t.directory.validationSaved}</b> : null}
             </div>
