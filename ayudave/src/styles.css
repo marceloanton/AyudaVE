@@ -481,7 +481,7 @@
 
   .work-area {
     @apply grid min-h-0 min-w-0 overflow-hidden;
-    grid-template-rows: 300px auto auto minmax(0, 1fr);
+    grid-template-rows: 300px auto minmax(0, 1fr);
   }
 
   .view-directorio,
@@ -492,7 +492,7 @@
   }
 
   .view-mapa {
-    grid-template-rows: minmax(420px, 58vh) auto auto minmax(0, 1fr);
+    grid-template-rows: minmax(340px, 42vh) auto minmax(0, 1fr);
   }
 
   .map-panel {
@@ -517,7 +517,7 @@
   }
 
   .map-search {
-    @apply left-6 top-3.5 flex h-12 w-[350px] items-center gap-3 rounded-[5px] border border-ayuda-line bg-white px-3.5 shadow-[0_8px_18px_rgba(26,45,51,0.06)];
+    @apply left-5 top-3 flex h-11 w-[330px] items-center gap-3 rounded-[5px] border border-ayuda-line bg-white px-3.5 shadow-[0_8px_18px_rgba(26,45,51,0.06)];
   }
 
   .map-search input {
@@ -525,12 +525,12 @@
   }
 
   .map-actions {
-    @apply right-7 top-4 flex gap-3.5;
+    @apply right-5 top-3.5 flex gap-2.5;
   }
 
   .map-actions button,
   .map-control {
-    @apply min-h-11 rounded-[5px] border border-ayuda-line bg-white font-bold text-[#2f3a3f];
+    @apply min-h-10 rounded-[5px] border border-ayuda-line bg-white font-bold text-[#2f3a3f];
   }
 
   .map-actions button:not(.is-active),
@@ -547,11 +547,11 @@
   }
 
   .map-type-filter {
-    @apply left-6 top-[76px] flex max-w-[calc(100%-48px)] gap-2 overflow-x-auto rounded bg-white/95 p-2 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
+    @apply left-5 top-[66px] flex max-w-[calc(100%-40px)] gap-1.5 overflow-x-auto rounded bg-white/95 p-1.5 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
   }
 
   .map-validation-filter {
-    @apply left-6 top-[130px] flex max-w-[calc(100%-48px)] gap-2 overflow-x-auto rounded bg-white/95 p-2 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
+    @apply left-5 top-[114px] flex max-w-[calc(100%-40px)] gap-1.5 overflow-x-auto rounded bg-white/95 p-1.5 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
   }
 
   .tabs,
@@ -658,9 +658,18 @@
     grid-template-columns: minmax(0, 1fr) 370px;
   }
 
+  .operations-strip {
+    @apply grid min-h-0 items-stretch gap-2 border-b border-ayuda-line bg-[#f8fbfc] px-3 py-2;
+    grid-template-columns: minmax(430px, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .operations-strip:not(:has(.source-freshness)) {
+    grid-template-columns: 1fr;
+  }
+
   .stats-strip {
-    @apply grid items-center gap-2 border-b border-ayuda-line bg-white px-3 py-2;
-    grid-template-columns: repeat(4, minmax(120px, auto)) minmax(220px, 1fr);
+    @apply grid min-w-0 items-center gap-2 rounded border border-ayuda-line bg-white px-2 py-2;
+    grid-template-columns: repeat(4, minmax(84px, 1fr));
   }
 
   .stats-strip article {
@@ -681,13 +690,17 @@
     @apply m-0 text-xs font-bold text-ayuda-muted;
   }
 
+  .operations-strip .stats-strip p {
+    @apply hidden;
+  }
+
   .stats-strip p {
-    @apply justify-self-end;
+    @apply col-span-full justify-self-start;
   }
 
   .source-freshness {
-    @apply grid items-center gap-3 border-b border-ayuda-line bg-[#f8fbfc] px-3 py-2;
-    grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr) auto;
+    @apply grid min-w-0 items-center gap-2 rounded border border-ayuda-line bg-white px-2.5 py-2;
+    grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.3fr) auto;
   }
 
   .source-freshness > div strong,
@@ -711,7 +724,7 @@
   }
 
   .source-freshness li {
-    @apply min-w-[150px] rounded border border-ayuda-line bg-white px-2.5 py-2;
+    @apply min-w-[130px] rounded border border-ayuda-line bg-[#f8fbfc] px-2 py-1.5;
   }
 
   .source-freshness li strong {
@@ -2290,7 +2303,7 @@
   }
 
   .view-mapa {
-    grid-template-rows: minmax(300px, 46vh) auto auto minmax(0, 1fr);
+    grid-template-rows: minmax(280px, 38vh) auto minmax(0, 1fr);
   }
 
   .map-search {
@@ -2426,6 +2439,10 @@
     overflow: auto;
   }
 
+  .operations-strip {
+    grid-template-columns: 1fr;
+  }
+
   .stats-strip {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
@@ -2517,12 +2534,12 @@
   }
 
   .work-area {
-    grid-template-rows: 310px auto auto auto;
+    grid-template-rows: 310px auto auto;
     overflow: visible;
   }
 
   .view-mapa {
-    grid-template-rows: 62vh auto auto auto;
+    grid-template-rows: 58vh auto auto;
   }
 
   .map-search {

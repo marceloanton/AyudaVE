@@ -304,14 +304,16 @@ export function PublicApp() {
                 setQuery={setQuery}
                 t={t}
               />
-              <StatsStrip
-                helpCount={directoryPoints.length}
-                isLoading={isLoadingReports}
-                reports={reports}
-                serverSyncAvailable={serverSyncAvailable}
-                t={t}
-              />
-              <SourceFreshness syncStatus={syncStatus} t={t} />
+              <div className="operations-strip">
+                <StatsStrip
+                  helpCount={directoryPoints.length}
+                  isLoading={isLoadingReports}
+                  reports={reports}
+                  serverSyncAvailable={serverSyncAvailable}
+                  t={t}
+                />
+                <SourceFreshness syncStatus={syncStatus} t={t} />
+              </div>
               <div className="content-grid">
                 <ReportsList
                   currentStatus={currentStatus}

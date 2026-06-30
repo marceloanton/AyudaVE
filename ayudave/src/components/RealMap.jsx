@@ -111,10 +111,10 @@ export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, s
               center={position}
               className={`leaflet-help ${typeClass(item.type)}`}
               fillColor={typeColors[item.type] || "#006f85"}
-              fillOpacity={isConfirmed(item) ? 0.78 : 0.52}
+              fillOpacity={isConfirmed(item) ? 0.72 : 0.46}
               key={`help-${item.external_id || item.name}-${position.join(",")}`}
-              pathOptions={{ color: isConfirmed(item) ? "#2ca365" : "#f59e0b", weight: 2 }}
-              radius={isConfirmed(item) ? 8 : 7}
+              pathOptions={{ color: isConfirmed(item) ? "#2ca365" : "#f59e0b", weight: 1.5 }}
+              radius={isConfirmed(item) ? 7 : 6}
             >
               <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
                 <strong>{item.name}</strong>
@@ -138,13 +138,13 @@ export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, s
               className={`leaflet-report ${typeClass(item.type)}`}
               eventHandlers={{ click: () => onSelectReport(item) }}
               fillColor={typeColors[item.type] || "#006f85"}
-              fillOpacity={item.priority === "Alta" ? 0.96 : 0.78}
+              fillOpacity={item.priority === "Alta" ? 0.9 : 0.68}
               key={`report-${item.id}`}
               pathOptions={{
                 color: markerStroke(item, selectedReport?.id === item.id),
                 weight: markerWeight(item, selectedReport?.id === item.id),
               }}
-              radius={selectedReport?.id === item.id ? 13 : item.priority === "Alta" ? 10 : 8}
+              radius={selectedReport?.id === item.id ? 12 : item.priority === "Alta" ? 9 : 7}
             >
               <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
                 <strong>{t.type(item.type)}</strong>
