@@ -199,6 +199,7 @@ export const dictionaries = {
       checkAgain: "Revisa el estado de sincronizacion mas tarde.",
       open: "Ver estado",
       cronIssue: "Revisar cron",
+      more: "fuentes mas",
     },
     sourceTrust: {
       title: "Fuentes confiables",
@@ -409,6 +410,7 @@ export const dictionaries = {
       checkAgain: "Check synchronization status later.",
       open: "View status",
       cronIssue: "Check cron",
+      more: "more sources",
     },
     sourceTrust: {
       title: "Trusted sources",
@@ -595,6 +597,7 @@ export const dictionaries = {
       checkAgain: "Confira o estado de sincronizacao mais tarde.",
       open: "Ver estado",
       cronIssue: "Revisar cron",
+      more: "fontes a mais",
     },
     sourceTrust: {
       title: "Fontes confiaveis",

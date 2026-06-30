@@ -3,9 +3,11 @@ import { formatSyncDate, getFreshnessClass } from "../lib/sync-status";
 export function SourceFreshness({ syncStatus, t }) {
   if (!syncStatus) return null;
 
-  const visibleSources = Array.isArray(syncStatus.sources)
-    ? syncStatus.sources.filter((source) => source.source !== "ayudave").slice(0, 5)
+  const externalSources = Array.isArray(syncStatus.sources)
+    ? syncStatus.sources.filter((source) => source.source !== "ayudave")
     : [];
+  const visibleSources = externalSources.slice(0, 3);
+  const hiddenSourceCount = Math.max(0, externalSources.length - visibleSources.length);
   const lastSynced = formatSyncDate(syncStatus.lastSyncedAt);
   const cronOk = syncStatus.cron?.lastOk;
 
@@ -29,6 +31,12 @@ export function SourceFreshness({ syncStatus, t }) {
             <span>{t.sourceFreshness.checkAgain}</span>
           </li>
         )}
+        {hiddenSourceCount > 0 ? (
+          <li className="source-more">
+            <strong>+{hiddenSourceCount}</strong>
+            <span>{t.sourceFreshness.more}</span>
+          </li>
+        ) : null}
       </ul>
       <a href="./api.php?action=sync_status" rel="noreferrer" target="_blank">
         {cronOk === false ? t.sourceFreshness.cronIssue : t.sourceFreshness.open}

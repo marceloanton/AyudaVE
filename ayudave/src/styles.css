@@ -655,7 +655,7 @@
 
   .content-grid {
     @apply grid min-h-0 gap-2.5 overflow-hidden p-2.5;
-    grid-template-columns: minmax(0, 1fr) 370px;
+    grid-template-columns: minmax(0, 1fr) minmax(390px, 420px);
   }
 
   .operations-strip {
@@ -668,12 +668,12 @@
   }
 
   .stats-strip {
-    @apply grid min-w-0 items-center gap-2 rounded border border-ayuda-line bg-white px-2 py-2;
-    grid-template-columns: repeat(4, minmax(84px, 1fr));
+    @apply grid min-w-0 items-center gap-1.5 rounded border border-ayuda-line bg-white px-2 py-1.5;
+    grid-template-columns: repeat(4, minmax(76px, 1fr));
   }
 
   .stats-strip article {
-    @apply rounded border border-ayuda-line bg-[#f8fbfc] px-3 py-2;
+    @apply rounded border border-ayuda-line bg-[#f8fbfc] px-2.5 py-1.5;
   }
 
   .stats-strip strong,
@@ -682,7 +682,7 @@
   }
 
   .stats-strip strong {
-    @apply text-xl font-black text-ayuda-teal-dark;
+    @apply text-lg font-black text-ayuda-teal-dark;
   }
 
   .stats-strip span,
@@ -699,8 +699,8 @@
   }
 
   .source-freshness {
-    @apply grid min-w-0 items-center gap-2 rounded border border-ayuda-line bg-white px-2.5 py-2;
-    grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.3fr) auto;
+    @apply grid min-w-0 items-center gap-2 rounded border border-ayuda-line bg-white px-2.5 py-1.5;
+    grid-template-columns: minmax(170px, 0.55fr) minmax(0, 1.45fr) auto;
   }
 
   .source-freshness > div strong,
@@ -711,7 +711,7 @@
   }
 
   .source-freshness > div strong {
-    @apply text-sm font-black uppercase text-ayuda-teal-dark;
+    @apply text-xs font-black uppercase text-ayuda-teal-dark;
   }
 
   .source-freshness > div span,
@@ -720,19 +720,24 @@
   }
 
   .source-freshness ul {
-    @apply m-0 flex min-w-0 list-none gap-2 overflow-x-auto p-0;
+    @apply m-0 grid min-w-0 list-none gap-2 overflow-hidden p-0;
+    grid-template-columns: repeat(4, minmax(86px, 1fr));
   }
 
   .source-freshness li {
-    @apply min-w-[130px] rounded border border-ayuda-line bg-[#f8fbfc] px-2 py-1.5;
+    @apply min-w-0 rounded border border-ayuda-line bg-[#f8fbfc] px-2 py-1;
   }
 
   .source-freshness li strong {
     @apply truncate text-xs font-black text-ayuda-teal-dark;
   }
 
+  .source-freshness li.source-more {
+    @apply border-[#b9d9e0] bg-[#eef9fb];
+  }
+
   .source-freshness a {
-    @apply inline-flex min-h-9 items-center justify-center rounded border border-ayuda-teal bg-white px-3 text-xs font-black uppercase text-ayuda-teal no-underline;
+    @apply inline-flex min-h-8 items-center justify-center rounded border border-ayuda-teal bg-white px-3 text-xs font-black uppercase text-ayuda-teal no-underline;
   }
 
   .source-freshness.is-stale a,
@@ -956,16 +961,22 @@
   }
 
   .help-card {
-    @apply grid min-h-[74px] items-center gap-3 border-b border-ayuda-line px-1.5 py-2.5;
-    grid-template-columns: 52px minmax(0, 1fr) 64px;
+    @apply grid min-h-[92px] items-start gap-3 border-b border-ayuda-line px-1.5 py-3;
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .help-main {
+    @apply min-w-0;
   }
 
   .help-card h3 {
-    @apply m-0 text-sm;
+    @apply m-0 text-sm leading-snug;
+    overflow-wrap: anywhere;
   }
 
   .help-card p {
-    @apply mt-1 mb-0 text-xs text-ayuda-muted;
+    @apply mt-1 mb-0 text-xs leading-normal text-ayuda-muted;
+    overflow-wrap: anywhere;
   }
 
   .country-badge {
@@ -973,10 +984,10 @@
   }
 
   .help-meta {
-    @apply grid justify-items-end gap-1.5 text-xs text-ayuda-muted;
+    @apply mt-2 flex flex-wrap items-center gap-1.5 text-xs text-ayuda-muted;
   }
 
-  .help-meta span:last-child {
+  .help-meta > span:nth-child(2) {
     @apply text-[11px] text-ayuda-green;
   }
 
@@ -1010,7 +1021,11 @@
   }
 
   .place-validation.compact {
-    @apply justify-items-end;
+    @apply mt-2 justify-items-start;
+  }
+
+  .place-validation.compact small {
+    @apply text-[11px];
   }
 
   .see-all {
@@ -2365,7 +2380,7 @@
   .content-grid {
     gap: 8px;
     padding: 8px;
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) 360px;
   }
 
   .reports-panel {
@@ -2401,8 +2416,8 @@
   }
 
   .help-card {
-    min-height: 60px;
-    grid-template-columns: 42px minmax(0, 1fr) 58px;
+    min-height: 84px;
+    grid-template-columns: 42px minmax(0, 1fr);
     padding-bottom: 7px;
     padding-top: 7px;
   }
@@ -2453,6 +2468,10 @@
 
   .source-freshness {
     grid-template-columns: 1fr;
+  }
+
+  .source-freshness ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .field-mode-grid {

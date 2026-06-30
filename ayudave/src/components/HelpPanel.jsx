@@ -19,7 +19,7 @@ export function HelpPanel({ helpPoints, onNavigate, onValidatePoint, t }) {
             <div className={`help-icon ${typeClass(point.type)}`} aria-hidden="true">
               {typeInitial(point.type)}
             </div>
-            <div>
+            <div className="help-main">
               <h3>{point.name}</h3>
               <p>
                 {redactSensitiveText(point.area)}, {redactSensitiveText(point.service)}
@@ -27,16 +27,16 @@ export function HelpPanel({ helpPoints, onNavigate, onValidatePoint, t }) {
               {internationalCountry ? (
                 <span className="country-badge">{t.directory.outsideVenezuela}: {internationalCountry}</span>
               ) : null}
-            </div>
-            <div className="help-meta">
-              <span>{point.hours}</span>
-              <span>{t.status(point.status)}</span>
-              <TrustBadge compact item={point} t={t} />
-              {point.source_url ? (
-                <a className="source-link" href={point.source_url} rel="noreferrer" target="_blank">
-                  {t.detail.openSource}
-                </a>
-              ) : null}
+              <div className="help-meta">
+                <span>{point.hours}</span>
+                <span>{t.status(point.status)}</span>
+                <TrustBadge compact item={point} t={t} />
+                {point.source_url ? (
+                  <a className="source-link" href={point.source_url} rel="noreferrer" target="_blank">
+                    {t.detail.openSource}
+                  </a>
+                ) : null}
+              </div>
               <div className="place-validation compact">
                 <small>{Number(point.validationActive || 0)} {t.directory.activeShort} · {Number(point.validationReview || 0)} {t.directory.reviewShort}</small>
                 <div className="place-validation-actions">
