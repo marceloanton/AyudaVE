@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
+header('X-Robots-Tag: noindex, nofollow');
 header('Cache-Control: no-store');
 
 $publicReadActions = ['metadata', 'sync_status', 'export_public', 'export_csv', 'people', 'external_metrics'];
@@ -689,7 +690,7 @@ function client_rate_key(): string
     return hash('sha256', $ip . '|' . $agent);
 }
 
-function enforce_create_rate_limit(string $dataDir, int $maxAttempts = 8, int $windowSeconds = 600): void
+function enforce_create_rate_limit(string $dataDir, int $maxAttempts = 8, int $windowSeconds = 600, string $errorMessage = 'Demasiados reportes desde este dispositivo. Intenta de nuevo mas tarde.'): void
 {
     if (!is_dir($dataDir) && !mkdir($dataDir, 0755, true)) {
         respond(500, ['ok' => false, 'error' => 'No se pudo crear almacenamiento.']);
@@ -732,7 +733,7 @@ function enforce_create_rate_limit(string $dataDir, int $maxAttempts = 8, int $w
         flock($handle, LOCK_UN);
         fclose($handle);
         header('Retry-After: ' . max(1, $resetAt - $now));
-        respond(429, ['ok' => false, 'error' => 'Demasiados reportes desde este dispositivo. Intenta de nuevo mas tarde.']);
+        respond(429, ['ok' => false, 'error' => $errorMessage]);
     }
 
     $entry['count'] = $count + 1;
@@ -2593,6 +2594,15 @@ function require_cron_token(string $givenToken, string $cronToken): void
     }
 }
 
+function cron_token_from_request(array $input): string
+{
+    $headerToken = (string) ($_SERVER['HTTP_X_AYUDAVE_CRON_TOKEN'] ?? '');
+    if ($headerToken !== '') {
+        return clean_text($headerToken, 160);
+    }
+    return clean_text($input['token'] ?? '', 160);
+}
+
 ensure_storage($dataDir, $dataFile);
 ensure_storage($dataDir, $membersFile);
 $pdo = db_connect($dbConfig);
@@ -2729,19 +2739,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         ]);
     }
     if ($action === 'cron_sync') {
-        require_cron_token(clean_text($_GET['token'] ?? '', 160), $cronToken);
-        if (!$pdo) {
-            $payload = ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.'];
-            write_cron_status($cronLogFile, 503, false, $payload);
-            respond(503, $payload);
-        }
-        $sources = isset($_GET['sources']) ? explode(',', clean_text($_GET['sources'], 240)) : $syncSources;
-        $useCursor = !isset($_GET['cursor']) || clean_text($_GET['cursor'], 12) !== '0';
-        $results = sync_external_sources($pdo, $sources, $externalApiKeys, $syncCursorFile, $useCursor);
-        $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
-        $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
-        write_cron_status($cronLogFile, 200, $ok, $payload);
-        respond(200, $payload);
+        respond(405, ['ok' => false, 'error' => 'Usa POST con X-AyudaVE-Cron-Token.']);
     }
     if ($action !== 'payload') {
         respond(400, ['ok' => false, 'error' => 'Accion invalida.']);
@@ -2763,7 +2761,24 @@ if (!is_array($input)) {
 }
 
 $action = clean_text($input['action'] ?? 'create', 40);
+if ($action === 'cron_sync') {
+    require_cron_token(cron_token_from_request($input), $cronToken);
+    if (!$pdo) {
+        $payload = ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.'];
+        write_cron_status($cronLogFile, 503, false, $payload);
+        respond(503, $payload);
+    }
+    $sources = isset($input['sources']) && is_array($input['sources']) ? $input['sources'] : $syncSources;
+    $useCursor = !array_key_exists('cursor', $input) || !empty($input['cursor']);
+    $results = sync_external_sources($pdo, $sources, $externalApiKeys, $syncCursorFile, $useCursor);
+    $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
+    $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
+    write_cron_status($cronLogFile, 200, $ok, $payload);
+    respond(200, $payload);
+}
+
 if ($action === 'admin_login') {
+    enforce_create_rate_limit($dataDir, 6, 900, 'Demasiados intentos de admin. Intenta de nuevo mas tarde.');
     require_admin_pin($input, $adminPin);
     establish_admin_session();
     respond(200, ['ok' => true, 'authenticated' => true, 'expiresInSeconds' => 8 * 60 * 60]);
@@ -2882,22 +2897,6 @@ if ($action === 'sync_external') {
     } catch (Throwable $error) {
         respond(500, ['ok' => false, 'error' => safe_error_message($error)]);
     }
-}
-
-if ($action === 'cron_sync') {
-    require_cron_token(clean_text($input['cron_token'] ?? '', 160), $cronToken);
-    if (!$pdo) {
-        $payload = ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.'];
-        write_cron_status($cronLogFile, 503, false, $payload);
-        respond(503, $payload);
-    }
-    $sources = isset($input['sources']) && is_array($input['sources']) ? $input['sources'] : $syncSources;
-    $useCursor = !array_key_exists('cursor', $input) || !empty($input['cursor']);
-    $results = sync_external_sources($pdo, $sources, $externalApiKeys, $syncCursorFile, $useCursor);
-    $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
-    $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
-    write_cron_status($cronLogFile, 200, $ok, $payload);
-    respond(200, $payload);
 }
 
 if ($action === 'validate_help_point') {

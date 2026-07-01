@@ -15,7 +15,7 @@ export function HelpPanel({ helpPoints, onNavigate, onValidatePoint, t }) {
         {helpPoints.map((point) => {
           const internationalCountry = detectInternationalAidPoint(point);
           return (
-          <article className="help-card" key={point.id || point.name}>
+          <article className="help-card help-card-nearby" key={point.id || point.name}>
             <div className={`help-icon ${typeClass(point.type)}`} aria-hidden="true">
               {typeInitial(point.type)}
             </div>

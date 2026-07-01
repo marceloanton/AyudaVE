@@ -1,4 +1,4 @@
-const CACHE_NAME = "ayudave-shell-v2";
+const CACHE_NAME = "ayudave-shell-v3";
 const STATIC_URLS = [
   "./",
   "./index.html",
@@ -36,7 +36,16 @@ self.addEventListener("activate", (event) => {
 });
 
 function shouldBypassCache(url) {
-  return url.pathname.endsWith("/api.php") || url.pathname.endsWith("/cron-sync.php");
+  const pathname = url.pathname;
+  return (
+    pathname.endsWith("/api.php") ||
+    pathname.endsWith("/cron-sync.php") ||
+    pathname.endsWith(".php") ||
+    pathname.endsWith("/admin.html") ||
+    pathname.endsWith("/config.php") ||
+    pathname.includes("/data/") ||
+    pathname.includes("/scripts/")
+  );
 }
 
 function isAsset(url) {

@@ -38,9 +38,14 @@ export function SourceFreshness({ syncStatus, t }) {
           </li>
         ) : null}
       </ul>
-      <a href="./api.php?action=sync_status" rel="noreferrer" target="_blank">
-        {cronOk === false ? t.sourceFreshness.cronIssue : t.sourceFreshness.open}
-      </a>
+      <div className="source-freshness-actions">
+        <a href="./api.php?action=sync_status" rel="noreferrer" target="_blank">
+          {cronOk === false ? t.sourceFreshness.cronIssue : t.sourceFreshness.open}
+        </a>
+        <a href="./datos-abiertos-ayudave.html">
+          {t.utility.export}
+        </a>
+      </div>
     </section>
   );
 }

@@ -1,7 +1,10 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /api.php
+Disallow: /cron-sync.php
 Disallow: /config.php
 Disallow: /data/
+Disallow: /scripts/
 
 Sitemap: https://ayudave.mranalytics.info/sitemap.xml

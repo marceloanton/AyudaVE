@@ -66,7 +66,7 @@ export function DirectoryView({ helpPoints, onValidatePoint, t }) {
       </div>
       <div className="filter-chips" role="group" aria-label={t.directory.filter}>
         {["Todos", ...needTypes].map((item) => (
-          <button className={type === item ? "is-active" : ""} key={item} onClick={() => setType(item)} type="button">
+          <button aria-pressed={type === item} className={type === item ? "is-active" : ""} key={item} onClick={() => setType(item)} type="button">
             {t.type(item)}
           </button>
         ))}
@@ -77,7 +77,7 @@ export function DirectoryView({ helpPoints, onValidatePoint, t }) {
           ["local", t.directory.scopeLocal, scopeCounts.local],
           ["international", t.directory.scopeInternational, scopeCounts.international],
         ].map(([value, label, count]) => (
-          <button className={scope === value ? "is-active" : ""} key={value} onClick={() => setScope(value)} type="button">
+          <button aria-pressed={scope === value} className={scope === value ? "is-active" : ""} key={value} onClick={() => setScope(value)} type="button">
             {label} <span>{count}</span>
           </button>
         ))}
@@ -118,6 +118,7 @@ export function DirectoryView({ helpPoints, onValidatePoint, t }) {
               </small>
               <div className="place-validation-actions">
                 <button
+                  aria-pressed={point.userValidation === "active"}
                   className={point.userValidation === "active" ? "is-active" : ""}
                   onClick={() => onValidatePoint(point, "active")}
                   type="button"
@@ -125,6 +126,7 @@ export function DirectoryView({ helpPoints, onValidatePoint, t }) {
                   {t.directory.stillActive}
                 </button>
                 <button
+                  aria-pressed={point.userValidation === "review"}
                   className={point.userValidation === "review" ? "is-warning" : ""}
                   onClick={() => onValidatePoint(point, "review")}
                   type="button"
@@ -132,6 +134,7 @@ export function DirectoryView({ helpPoints, onValidatePoint, t }) {
                   {t.directory.needsReview}
                 </button>
                 <button
+                  aria-pressed={point.userValidation === "incorrect"}
                   className={point.userValidation === "incorrect" ? "is-danger" : ""}
                   onClick={() => onValidatePoint(point, "incorrect")}
                   type="button"

@@ -83,13 +83,22 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
             ["Localizado", t.people.localized],
             ["Encontrado", t.people.found],
           ].map(([value, label]) => (
-            <button className={status === value ? "is-active" : ""} key={value} onClick={() => setStatus(value)} type="button">
+            <button
+              aria-pressed={status === value}
+              className={status === value ? "is-active" : ""}
+              key={value}
+              onClick={() => setStatus(value)}
+              type="button"
+            >
               {label}
             </button>
           ))}
         </div>
       </div>
       <p className="people-privacy">{t.people.privacy}</p>
+      {(query.trim() || status !== "todos") && hasMore ? (
+        <p className="people-privacy">{t.people.localFilterNotice}</p>
+      ) : null}
       {external ? (
         <aside className="people-external-metrics" aria-label={t.people.externalTitle}>
           <div>

@@ -17,6 +17,9 @@ AddType image/svg+xml .svg
   <Files "sw.js">
     Header set Cache-Control "no-cache"
   </Files>
+  <Files "admin.html">
+    Header set X-Robots-Tag "noindex, nofollow"
+  </Files>
 </IfModule>
 
 <Files "config.php">

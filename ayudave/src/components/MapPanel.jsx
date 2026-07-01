@@ -19,6 +19,9 @@ function matchesValidationFilter(item, validationFilter) {
   return true;
 }
 
+const maxMapReports = 180;
+const maxMapHelpPoints = 320;
+
 export function MapPanel({ currentType, helpPoints, onSelectReport, reports, query, selectedReport, setCurrentType, setQuery, t }) {
   const [showReports, setShowReports] = useState(true);
   const [showHelpPoints, setShowHelpPoints] = useState(true);
@@ -45,6 +48,8 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
       return {
         reports: visibleReportPoints.length,
         help: visibleHelpPoints.length,
+        shownReports: Math.min(visibleReportPoints.length, maxMapReports),
+        shownHelp: Math.min(visibleHelpPoints.length, maxMapHelpPoints),
         confirmed: visibleMapItems.filter(isConfirmed).length,
         pending: visibleMapItems.filter((item) => item.status === "Sin validar").length,
       };
@@ -66,18 +71,22 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
       </div>
       <div className="map-actions">
         <button
+          aria-label={t.map.reports}
           aria-pressed={showReports}
           className={showReports ? "is-active" : ""}
           onClick={() => setShowReports((value) => !value)}
+          title={t.map.reports}
           type="button"
         >
           <Icon name="sliders" />
           {t.map.reports}
         </button>
         <button
+          aria-label={t.map.helpPoints}
           aria-pressed={showHelpPoints}
           className={showHelpPoints ? "is-active" : ""}
           onClick={() => setShowHelpPoints((value) => !value)}
+          title={t.map.helpPoints}
           type="button"
         >
           <Icon name="layers" />
@@ -129,6 +138,13 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
           <span>{t.map.reportsWithLocation}</span>
           <strong>{mapCounts.help}</strong>
           <span>{t.map.helpPointsLabel}</span>
+          {(mapCounts.shownReports < mapCounts.reports || mapCounts.shownHelp < mapCounts.help) ? (
+            <em className="legend-visible">
+              {t.map.visibleLimit
+                .replace("{shown}", String(mapCounts.shownReports + mapCounts.shownHelp))
+                .replace("{total}", String(mapCounts.reports + mapCounts.help))}
+            </em>
+          ) : null}
           <em className="legend-confirmed">{mapCounts.confirmed} {t.map.confirmedShort}</em>
           <em className="legend-pending">{mapCounts.pending} {t.map.pendingShort}</em>
         </div>

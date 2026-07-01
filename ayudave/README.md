@@ -18,7 +18,7 @@ Configurar como minimo:
 - `site_url`: URL publica real de la instalacion, sin slash final.
 - `admin_pin`: PIN privado para entrar a `admin.html`.
 - `cron_token`: token largo para ejecutar sincronizacion automatica.
-- `external_api_keys`: claves publicables o anonimas necesarias para fuentes externas.
+- `external_api_keys`: claves de fuentes externas. Si alguna clave no es publica/anonima, guardarla solo en `config.php` o variables de entorno del hosting.
 - `db`: credenciales MariaDB/MySQL si se quiere sincronizacion compartida entre usuarios.
 
 `config.php` esta ignorado por Git. No subir PIN, tokens, claves ni credenciales reales.
@@ -67,13 +67,21 @@ Los endpoints publicos de lectura (`metadata`, `sync_status`, `export_public`, `
 
 ## Cron de sincronizacion
 
-Programar el script CLI cada 10 o 15 minutos:
+Programar el script cada 10 o 15 minutos.
+
+En IONOS WebCron usar:
+
+```text
+https://ayudave.mranalytics.info/cron-sync.php?token=TU_TOKEN_LARGO
+```
+
+En CLI usar:
 
 ```bash
 php /ruta/a/ayudave/cron-sync.php
 ```
 
-El script lee `site_url` y `cron_token` desde `config.php`, sincroniza las fuentes configuradas y escribe un resumen en `data/cron-sync.log`.
+El script lee `site_url` y `cron_token` desde `config.php`, valida el token del WebCron y llama al API interno por POST con `X-AyudaVE-Cron-Token`. Sincroniza las fuentes configuradas y escribe un resumen en `data/cron-sync.log`.
 El cron usa `data/cron-sync.lock` y el backend usa `data/sync.lock` para evitar ejecuciones simultaneas.
 
 ## Snapshot de metricas externas
