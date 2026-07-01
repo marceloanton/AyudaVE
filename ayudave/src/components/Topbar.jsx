@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Icon } from "./Icon";
 import { languages } from "../lib/i18n";
 
 export function Topbar({ activeView, language, onViewChange, serverSyncAvailable, setLanguage, t }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const tabs = [
     ["mapa", "map", t.nav.map],
     ["reportar", "edit", t.nav.report],
@@ -10,6 +12,10 @@ export function Topbar({ activeView, language, onViewChange, serverSyncAvailable
     ["alertas", "bell", t.nav.alerts],
     ["ayuda", "info", t.nav.help],
   ];
+  function handleViewChange(view) {
+    setMenuOpen(false);
+    onViewChange(view);
+  }
 
   return (
     <header className="topbar">
@@ -23,7 +29,7 @@ export function Topbar({ activeView, language, onViewChange, serverSyncAvailable
             className={`tab ${activeView === view ? "is-active" : ""}`}
             key={view}
             type="button"
-            onClick={() => onViewChange(view)}
+            onClick={() => handleViewChange(view)}
           >
             <Icon name={icon} />
             {label}
@@ -50,10 +56,30 @@ export function Topbar({ activeView, language, onViewChange, serverSyncAvailable
           <span>{serverSyncAvailable ? t.sync.synced : t.sync.offline}</span>
           <small>{serverSyncAvailable ? t.sync.active : t.sync.local}</small>
         </div>
-        <button className="menu-button" type="button" aria-label={t.nav.menu}>
+        <button
+          aria-controls="mobile-nav-menu"
+          aria-expanded={menuOpen}
+          className="menu-button"
+          onClick={() => setMenuOpen((value) => !value)}
+          type="button"
+          aria-label={t.nav.menu}
+        >
           <Icon name="menu" />
         </button>
       </div>
+      <nav className={`mobile-nav-menu ${menuOpen ? "is-open" : ""}`} id="mobile-nav-menu" aria-label={t.nav.sections}>
+        {tabs.map(([view, icon, label]) => (
+          <button
+            className={activeView === view ? "is-active" : ""}
+            key={view}
+            onClick={() => handleViewChange(view)}
+            type="button"
+          >
+            <Icon name={icon} />
+            {label}
+          </button>
+        ))}
+      </nav>
     </header>
   );
 }
