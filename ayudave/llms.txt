@@ -2,22 +2,21 @@
 
 AyudaVE is a public emergency-aid web application for Venezuela earthquake response.
 
-Main site: https://example.org/
-Open data feed: https://example.org/api.php?action=export_public
-API metadata: https://example.org/api.php?action=metadata
-Sync status: https://example.org/api.php?action=sync_status
-OpenAPI contract: https://example.org/openapi.json
-Sources index: https://example.org/sources.json
-Sitemap: https://example.org/sitemap.xml
+Main site: https://ayudave.mranalytics.info/
+Open data feed: https://ayudave.mranalytics.info/api.php?action=export_public
+API metadata: https://ayudave.mranalytics.info/api.php?action=metadata
+Sync status: https://ayudave.mranalytics.info/api.php?action=sync_status
+OpenAPI contract: https://ayudave.mranalytics.info/openapi.json
+Sources index: https://ayudave.mranalytics.info/sources.json
+Sitemap: https://ayudave.mranalytics.info/sitemap.xml
 
 Useful pages:
-- https://example.org/ayuda-terremoto-venezuela.html
-- https://example.org/como-reportar-ayuda-venezuela.html
-- https://example.org/directorio-ayuda-venezuela.html
-- https://example.org/datos-abiertos-ayudave.html
+- https://ayudave.mranalytics.info/ayuda-terremoto-venezuela.html
+- https://ayudave.mranalytics.info/como-reportar-ayuda-venezuela.html
+- https://ayudave.mranalytics.info/directorio-ayuda-venezuela.html
+- https://ayudave.mranalytics.info/datos-abiertos-ayudave.html
 
 Data policy:
 - Public export excludes private contacts and secrets.
 - Source attribution is preserved when records are synchronized from external public sources.
 - People-missing/person-sensitive data should not be imported into the public map without a separate authenticated privacy workflow.
-

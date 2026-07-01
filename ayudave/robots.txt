@@ -4,5 +4,4 @@ Disallow: /admin.html
 Disallow: /config.php
 Disallow: /data/
 
-Sitemap: https://example.org/sitemap.xml
-
+Sitemap: https://ayudave.mranalytics.info/sitemap.xml

@@ -99,4 +99,4 @@ El workflow `.github/workflows/update-external-metrics.yml` ejecuta ese comando 
 - Si `api.php` no esta disponible, la app publica sigue funcionando con `localStorage`.
 - `api.php` crea las tablas necesarias automaticamente si la conexion MariaDB/MySQL funciona.
 - `dist/data/reports.json` no se genera en build para no pisar datos reales. `api.php` lo crea si falta.
-- Los archivos SEO (`sitemap.xml`, `llms.txt`, OpenAPI y metadatos) usan `https://example.org` como placeholder. Reemplazarlo por el dominio real de cada instalacion antes de publicar.
+- Los archivos SEO (`sitemap.xml`, `robots.txt`, `llms.txt`, OpenAPI y metadatos) deben apuntar al dominio publico real antes de publicar una instalacion.

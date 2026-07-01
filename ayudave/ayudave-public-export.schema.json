@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/ayudave-public-export.schema.json",
+  "$id": "https://ayudave.mranalytics.info/ayudave-public-export.schema.json",
   "title": "AyudaVE public export",
   "description": "Contrato publico para sincronizar reportes, puntos de ayuda y casos separados de personas desaparecidas/encontradas sin cedulas ni contactos.",
   "type": "object",
@@ -172,4 +172,3 @@
     }
   }
 }
-

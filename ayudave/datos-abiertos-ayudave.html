@@ -9,9 +9,9 @@
       content="Feed publico de AyudaVE para sincronizar reportes, refugios, centros de acopio y puntos de ayuda en Venezuela."
     />
     <meta name="robots" content="index,follow" />
-    <link rel="canonical" href="https://example.org/datos-abiertos-ayudave.html" />
-    <link rel="alternate" type="application/json" href="https://example.org/api.php?action=export_public" title="AyudaVE public JSON feed" />
-    <link rel="service-desc" type="application/openapi+json" href="https://example.org/openapi.json" />
+    <link rel="canonical" href="https://ayudave.mranalytics.info/datos-abiertos-ayudave.html" />
+    <link rel="alternate" type="application/json" href="https://ayudave.mranalytics.info/api.php?action=export_public" title="AyudaVE public JSON feed" />
+    <link rel="service-desc" type="application/openapi+json" href="https://ayudave.mranalytics.info/openapi.json" />
     <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
     <style>
       body { margin: 0; font-family: Inter, "Segoe UI", Arial, sans-serif; color: #18292e; background: #eef4f6; }
@@ -31,7 +31,7 @@
         "@type": "DataDownload",
         "name": "AyudaVE export_public",
         "encodingFormat": "application/json",
-        "contentUrl": "https://example.org/api.php?action=export_public",
+        "contentUrl": "https://ayudave.mranalytics.info/api.php?action=export_public",
         "license": "https://creativecommons.org/licenses/by/4.0/"
       }
     </script>
@@ -48,7 +48,7 @@
       </section>
       <section>
         <h2>Endpoint</h2>
-        <pre><code>GET https://example.org/api.php?action=export_public</code></pre>
+        <pre><code>GET https://ayudave.mranalytics.info/api.php?action=export_public</code></pre>
         <p>
           Sincronizacion incremental:
           <code>api.php?action=export_public&amp;since=2026-06-28T00:00:00Z</code>
@@ -99,7 +99,7 @@
       </section>
       <section>
         <h2>Ejemplo de consumo</h2>
-        <pre><code>const res = await fetch("https://example.org/api.php?action=export_public");
+        <pre><code>const res = await fetch("https://ayudave.mranalytics.info/api.php?action=export_public");
 const data = await res.json();
 
 const puntosConfiables = data.helpPoints.filter((punto) =>
@@ -121,4 +121,3 @@ const reportesActivos = data.reports.filter((reporte) =>
     </main>
   </body>
 </html>
-

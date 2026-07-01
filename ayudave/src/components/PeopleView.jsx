@@ -22,6 +22,11 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
   const syncedTotal = total || counts?.total || people.length;
   const verified = people.filter((person) => person.verified);
   const external = externalMetrics?.metrics || null;
+  const externalUpdatedAt = externalMetrics?.snapshotAt || externalMetrics?.generatedAt || "";
+  const externalMode = externalMetrics?.source?.mode === "aggregate_snapshot" ? t.people.externalSnapshot : t.people.externalLive;
+  const externalMeta = t.people.externalMode
+    .replace("{mode}", externalMode)
+    .replace("{updated}", formatDate(externalUpdatedAt) || t.people.externalUnknown);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("todos");
   const filteredPeople = people.filter((person) => {
@@ -90,6 +95,7 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
           <div>
             <strong>{t.people.externalTitle}</strong>
             <p>{t.people.externalBody}</p>
+            <span className="people-external-meta">{externalMeta}</span>
           </div>
           <dl>
             <div>
