@@ -18,6 +18,7 @@ import { HelpPanel } from "./HelpPanel";
 import { HelpGuide } from "./HelpGuide";
 import { Icon } from "./Icon";
 import { MapPanel } from "./MapPanel";
+import { PeopleView } from "./PeopleView";
 import { ReportDetail } from "./ReportDetail";
 import { ReportPanel } from "./ReportPanel";
 import { ReportsList } from "./ReportsList";
@@ -26,7 +27,7 @@ import { StatsStrip } from "./StatsStrip";
 import { Topbar } from "./Topbar";
 import { UtilityLinks } from "./UtilityLinks";
 
-const views = ["mapa", "reportar", "directorio", "alertas", "ayuda"];
+const views = ["mapa", "reportar", "directorio", "personas", "alertas", "ayuda"];
 const placeValidationsKey = "ayudave-place-validations";
 
 function normalizeHashView() {
@@ -84,6 +85,7 @@ export function PublicApp() {
   const [query, setQuery] = useState("");
   const [reports, setReports] = useState(() => baselineReports());
   const [directoryPoints, setDirectoryPoints] = useState(() => withLocalPlaceValidations(helpPoints));
+  const [missingPeople, setMissingPeople] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [serverSyncAvailable, setServerSyncAvailable] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null);
@@ -126,10 +128,11 @@ export function PublicApp() {
         if (cancelled) return;
 
         if (payloadResult.status === "fulfilled") {
-          const { reports: serverReports, helpPoints: serverHelpPoints } = payloadResult.value;
+          const { reports: serverReports, helpPoints: serverHelpPoints, missingPeople: serverMissingPeople } = payloadResult.value;
           const trustedReports = serverReports.length > 0 ? serverReports : seedReports;
           setReports((current) => mergeReports(trustedReports, current.filter((item) => item.id.startsWith("local-"))));
           setDirectoryPoints(withLocalPlaceValidations(serverHelpPoints.length > 0 ? serverHelpPoints : helpPoints));
+          setMissingPeople(serverMissingPeople);
           setServerSyncAvailable(true);
         } else {
           setServerSyncAvailable(false);
@@ -336,6 +339,7 @@ export function PublicApp() {
             </>
           ) : null}
           {activeView === "directorio" ? <DirectoryView helpPoints={directoryPoints} onValidatePoint={handleValidateHelpPoint} t={t} /> : null}
+          {activeView === "personas" ? <PeopleView people={missingPeople} t={t} /> : null}
           {activeView === "alertas" ? (
             <AlertsDrawer
               open

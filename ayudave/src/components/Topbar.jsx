@@ -6,6 +6,7 @@ export function Topbar({ activeView, language, onViewChange, serverSyncAvailable
     ["mapa", "map", t.nav.map],
     ["reportar", "edit", t.nav.report],
     ["directorio", "users", t.nav.directory],
+    ["personas", "users", t.nav.people],
     ["alertas", "bell", t.nav.alerts],
     ["ayuda", "info", t.nav.help],
   ];

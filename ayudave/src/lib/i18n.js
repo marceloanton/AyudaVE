@@ -90,7 +90,7 @@ const trustLabels = {
 
 export const dictionaries = {
   es: {
-    nav: { sections: "Secciones", map: "Mapa", report: "Reportar", directory: "Directorio", alerts: "Alertas", help: "Ayuda", menu: "Menu" },
+    nav: { sections: "Secciones", map: "Mapa", report: "Reportar", directory: "Directorio", people: "Personas", alerts: "Alertas", help: "Ayuda", menu: "Menu" },
     sync: {
       synced: "Sincronizado",
       offline: "Sin conexion",
@@ -144,6 +144,30 @@ export const dictionaries = {
       validatedOrigin: "validado en origen",
       needsValidation: "a validar",
       noContact: "Sin validar",
+    },
+    people: {
+      title: "Personas desaparecidas y encontradas",
+      subtitle: "Casos sincronizados desde fuentes publicas. No uses esta lista como mapa de ayuda; abre la ficha original para coordinar informacion sensible.",
+      reportAtSource: "Reportar o actualizar en fuente",
+      summary: "Resumen de personas",
+      total: "Casos sincronizados",
+      searching: "Buscando",
+      found: "Encontradas",
+      verified: "Verificadas",
+      search: "Buscar por nombre, zona o ultima vez",
+      filter: "Filtrar personas",
+      all: "Todas",
+      privacy: "Privacidad: no publicamos cedulas ni contactos. En menores se priorizan datos reducidos y fotos difuminadas o sin foto.",
+      emptyTitle: "No hay casos con ese filtro",
+      emptyBody: "Prueba otra busqueda o revisa la fuente original.",
+      locationUnknown: "Ubicacion no informada",
+      age: "Edad",
+      lastSeen: "Ultima vez",
+      updated: "Actualizado",
+      verifiedOrigin: "Verificado en origen",
+      sourcePending: "Fuente externa",
+      minorProtected: "Menor protegido",
+      openSource: "Abrir ficha",
     },
     reportForm: {
       title: "Reportar una necesidad",
@@ -399,10 +423,11 @@ export const dictionaries = {
     },
   },
   en: {
-    nav: { sections: "Sections", map: "Map", report: "Report", directory: "Directory", alerts: "Alerts", help: "Help", menu: "Menu" },
+    nav: { sections: "Sections", map: "Map", report: "Report", directory: "Directory", people: "People", alerts: "Alerts", help: "Help", menu: "Menu" },
     sync: { synced: "Synced", offline: "Offline", active: "Server active", local: "Saved locally", serverShared: "Data shared with server", loading: "Loading server data", localMode: "Local mode until connection returns" },
     map: { search: "Search place", reports: "Reports", helpPoints: "Aid points", filterByType: "Filter map by type", filterByValidation: "Filter map by validation", validationAll: "All", validationConfirmed: "Confirmed", validationPending: "Needs validation", canvas: "Operational report map", summary: "Map summary", reportsWithLocation: "reports with location", helpPointsLabel: "aid points", helpPoint: "Aid point", viewDetail: "View details", confirmedOrigin: "Validated at source", needsValidation: "Needs local validation", confirmedShort: "valid", pendingShort: "needs validation", clusterItems: "items in this area", clusterUrgent: "urgent", clusterPending: "need validation", clusterZoom: "Zoom into area" },
     reports: { listLabel: "Report list", near: "Reports near you", confirmed: "Confirmed", resolved: "Resolved", orderBy: "Sort by:", recent: "Most recent", urgency: "Highest urgency", loadingTitle: "Loading reports", loadingBody: "Fetching information from the server.", emptyTitle: "No reports match this filter", emptyBody: "Try another search or create a new report from the left panel.", showing: "Showing", of: "of", refine: "Use filters or search to refine the view.", externalSource: "External source", localSource: "AyudaVE community", validatedOrigin: "validated at source", needsValidation: "needs validation", noContact: "Needs validation" },
+    people: { title: "Missing and found people", subtitle: "Cases synchronized from public sources. Do not treat this as the aid map; open the original record to coordinate sensitive information.", reportAtSource: "Report or update at source", summary: "People summary", total: "Synced cases", searching: "Searching", found: "Found", verified: "Verified", search: "Search by name, area, or last seen", filter: "Filter people", all: "All", privacy: "Privacy: we do not publish ID numbers or contacts. For minors, reduced data and blurred or no photos are prioritized.", emptyTitle: "No cases match this filter", emptyBody: "Try another search or review the original source.", locationUnknown: "Location not provided", age: "Age", lastSeen: "Last seen", updated: "Updated", verifiedOrigin: "Verified at source", sourcePending: "External source", minorProtected: "Minor protected", openSource: "Open record" },
     reportForm: { title: "Report a need", subtitle: "Your report helps others assist.", close: "Close", type: "Need type", details: "Details", location: "Location", locationPlaceholder: "Area, street, or reference point", city: "City / zone", cityPlaceholder: "E.g. Caracas, La Guaira, Valencia", need: "What do you need?", detailPlaceholder: "Describe the need without publishing sensitive personal data.", people: "How many people?", urgency: "Urgency", attachments: "Attach", optional: "(optional)", unavailable: "Attachments are not available yet.", guidanceTitle: "Before sending", guidance: "Report only what is needed to coordinate aid. Do not publish full names, IDs, private phones, or minors' data. The report stays as Needs validation until community confirmation.", privacyWarningTitle: "Review privacy", privacyWarningBody: "We detected a possible phone, ID, or email. It will be removed automatically on submit, but replacing it with a general reference is safer.", lowConnection: "If connection is weak, send text first. Add photos or audio through safer channels only when they help validate.", geoUse: "Use my location", geoUpdate: "Update location", geoHint: "Optional. Helps place the report on the map.", geoLoading: "Finding location...", geoSaved: "Location added to the report.", geoDenied: "Could not get location.", geoUnavailable: "Location is not available in this browser.", photo: "Photo", audio: "Audio", voice: "Voice note", submit: "Send report", saveCopy: "It will be saved and sent when you have connection.", saved: "Report saved. It stays as Needs validation until community confirmation.", syncTitle: "Sync status", shared: "Your reports are shared with other users.", retry: "Your reports and changes will be sent when connection returns.", peopleSuffix: "people", qualityTitle: "Report quality", qualityLocation: "Area or reference point", qualityCity: "City or sector", qualityDetail: "Clear need details", qualityPeople: "Approximate people affected", qualityPrivacy: "No visible sensitive data", qualityMap: "Device location added" },
     stats: { active: "Active", urgent: "High urgency", help: "Aid points", external: "External sources" },
     sourceFreshness: {
@@ -586,10 +611,11 @@ export const dictionaries = {
     },
   },
   pt: {
-    nav: { sections: "Secoes", map: "Mapa", report: "Reportar", directory: "Diretorio", alerts: "Alertas", help: "Ajuda", menu: "Menu" },
+    nav: { sections: "Secoes", map: "Mapa", report: "Reportar", directory: "Diretorio", people: "Pessoas", alerts: "Alertas", help: "Ajuda", menu: "Menu" },
     sync: { synced: "Sincronizado", offline: "Sem conexao", active: "Servidor ativo", local: "Salvo localmente", serverShared: "Dados compartilhados com o servidor", loading: "Carregando dados do servidor", localMode: "Modo local ate recuperar conexao" },
     map: { search: "Buscar local", reports: "Relatos", helpPoints: "Pontos", filterByType: "Filtrar mapa por tipo", filterByValidation: "Filtrar mapa por validacao", validationAll: "Todos", validationConfirmed: "Confirmados", validationPending: "A validar", canvas: "Mapa operacional de relatos", summary: "Resumo do mapa", reportsWithLocation: "relatos com localizacao", helpPointsLabel: "pontos de ajuda", helpPoint: "Ponto de ajuda", viewDetail: "Ver detalhes", confirmedOrigin: "Validado na origem", needsValidation: "A validar localmente", confirmedShort: "validos", pendingShort: "a validar", clusterItems: "pontos nesta zona", clusterUrgent: "urgentes", clusterPending: "a validar", clusterZoom: "Aproximar zona" },
     reports: { listLabel: "Lista de relatos", near: "Relatos perto de voce", confirmed: "Confirmados", resolved: "Resolvidos", orderBy: "Ordenar por:", recent: "Mais recentes", urgency: "Maior urgencia", loadingTitle: "Carregando relatos", loadingBody: "Buscando informacao do servidor.", emptyTitle: "Nao ha relatos com esse filtro", emptyBody: "Tente outra busca ou crie um novo relato no painel esquerdo.", showing: "Mostrando", of: "de", refine: "Use filtros ou busca para ajustar a vista.", externalSource: "Fonte externa", localSource: "Comunidade AyudaVE", validatedOrigin: "validado na origem", needsValidation: "a validar", noContact: "A validar" },
+    people: { title: "Pessoas desaparecidas e encontradas", subtitle: "Casos sincronizados de fontes publicas. Nao trate isto como mapa de ajuda; abra a ficha original para coordenar informacao sensivel.", reportAtSource: "Reportar ou atualizar na fonte", summary: "Resumo de pessoas", total: "Casos sincronizados", searching: "Buscando", found: "Encontradas", verified: "Verificadas", search: "Buscar por nome, zona ou ultima vez", filter: "Filtrar pessoas", all: "Todas", privacy: "Privacidade: nao publicamos documentos nem contatos. Para menores, priorizamos dados reduzidos e fotos desfocadas ou sem foto.", emptyTitle: "Nao ha casos com esse filtro", emptyBody: "Tente outra busca ou revise a fonte original.", locationUnknown: "Localizacao nao informada", age: "Idade", lastSeen: "Ultima vez", updated: "Atualizado", verifiedOrigin: "Verificado na origem", sourcePending: "Fonte externa", minorProtected: "Menor protegido", openSource: "Abrir ficha" },
     reportForm: { title: "Reportar uma necessidade", subtitle: "Seu relato ajuda outros a apoiar.", close: "Fechar", type: "Tipo de necessidade", details: "Detalhes", location: "Localizacao", locationPlaceholder: "Setor, rua ou ponto de referencia", city: "Cidade / zona", cityPlaceholder: "Ex. Caracas, La Guaira, Valencia", need: "O que voce precisa?", detailPlaceholder: "Descreva a necessidade sem publicar dados sensiveis de pessoas.", people: "Quantas pessoas?", urgency: "Urgencia", attachments: "Anexar", optional: "(opcional)", unavailable: "Anexos ainda nao disponiveis.", guidanceTitle: "Antes de enviar", guidance: "Reporte somente o necessario para coordenar ajuda. Nao publique nomes completos, documentos, telefones privados nem dados de menores. O relato fica A validar ate confirmacao comunitaria.", privacyWarningTitle: "Revisar privacidade", privacyWarningBody: "Detectamos possivel telefone, documento ou email. Sera removido automaticamente ao enviar, mas e mais seguro trocar por uma referencia geral.", lowConnection: "Se a conexao estiver fraca, envie texto primeiro. Adicione fotos ou audio por canais seguros somente quando ajudarem a validar.", geoUse: "Usar minha localizacao", geoUpdate: "Atualizar localizacao", geoHint: "Opcional. Ajuda a posicionar o relato no mapa.", geoLoading: "Buscando localizacao...", geoSaved: "Localizacao adicionada ao relato.", geoDenied: "Nao foi possivel obter localizacao.", geoUnavailable: "Localizacao indisponivel neste navegador.", photo: "Foto", audio: "Audio", voice: "Nota de voz", submit: "Enviar relato", saveCopy: "Sera salvo e enviado quando houver conexao.", saved: "Relato salvo. Fica como A validar ate confirmacao comunitaria.", syncTitle: "Estado de sincronizacao", shared: "Seus relatos sao compartilhados com outros usuarios.", retry: "Seus relatos e mudancas serao enviados quando a conexao voltar.", peopleSuffix: "pessoas", qualityTitle: "Qualidade do relato", qualityLocation: "Zona ou ponto de referencia", qualityCity: "Cidade ou setor", qualityDetail: "Detalhe claro da necessidade", qualityPeople: "Quantidade aproximada de pessoas", qualityPrivacy: "Sem dados sensiveis visiveis", qualityMap: "Localizacao do dispositivo adicionada" },
     stats: { active: "Ativos", urgent: "Alta urgencia", help: "Pontos de ajuda", external: "Fontes externas" },
     sourceFreshness: {

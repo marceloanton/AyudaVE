@@ -28,73 +28,79 @@ function toPoint(item) {
   return isValidCoordinate(lat, lng) ? [lat, lng] : null;
 }
 
-function clusterResolution(zoom) {
+function clusterPixelRadius(zoom) {
   if (zoom >= 10) return 0;
-  if (zoom >= 9) return 0.16;
-  if (zoom >= 8) return 0.3;
-  if (zoom >= 7) return 0.55;
-  return 0.95;
+  if (zoom >= 9) return 50;
+  if (zoom >= 8) return 62;
+  if (zoom >= 7) return 76;
+  return 94;
 }
 
-function clusterPoints(points, zoom) {
-  const resolution = clusterResolution(zoom);
-  if (!resolution) return { clusters: [], singles: points };
+function clusterPoints(points, map, zoom) {
+  const radius = clusterPixelRadius(zoom);
+  if (!radius) return { clusters: [], singles: points };
   const minClusterSize = zoom < 8 ? 2 : 3;
-
-  const groups = new Map();
+  const groups = [];
   points.forEach((point) => {
-    const [lat, lng] = point.position;
-    const key = `${Math.round(lat / resolution)}:${Math.round(lng / resolution)}`;
-    const group = groups.get(key) || [];
-    group.push(point);
-    groups.set(key, group);
+    const projected = map.project(L.latLng(point.position), zoom);
+    let bestGroup = null;
+    let bestDistance = Number.POSITIVE_INFINITY;
+
+    groups.forEach((group) => {
+      const distance = projected.distanceTo(group.projected);
+      if (distance <= radius && distance < bestDistance) {
+        bestDistance = distance;
+        bestGroup = group;
+      }
+    });
+
+    if (!bestGroup) {
+      groups.push({
+        projected,
+        points: [point],
+        x: projected.x,
+        y: projected.y,
+      });
+      return;
+    }
+
+    bestGroup.points.push(point);
+    bestGroup.x += projected.x;
+    bestGroup.y += projected.y;
+    bestGroup.projected = L.point(bestGroup.x / bestGroup.points.length, bestGroup.y / bestGroup.points.length);
   });
 
   const clusters = [];
   const singles = [];
-  groups.forEach((group, key) => {
-    if (group.length < minClusterSize) {
-      singles.push(...group);
+  groups.forEach((group, index) => {
+    if (group.points.length < minClusterSize) {
+      singles.push(...group.points);
       return;
     }
 
-    const totals = group.reduce(
+    const totals = group.points.reduce(
       (acc, point) => {
-        acc.lat += point.position[0];
-        acc.lng += point.position[1];
         if (point.kind === "report") acc.reports += 1;
         if (point.kind === "help") acc.help += 1;
         if (point.item.priority === "Alta") acc.urgent += 1;
         if (point.item.status === "Sin validar") acc.pending += 1;
         return acc;
       },
-      { help: 0, lat: 0, lng: 0, pending: 0, reports: 0, urgent: 0 },
+      { help: 0, pending: 0, reports: 0, urgent: 0 },
     );
+    const position = map.unproject(group.projected, zoom);
     clusters.push({
-      count: group.length,
+      count: group.points.length,
       help: totals.help,
-      id: `cluster-${key}`,
+      id: `cluster-${zoom}-${index}-${group.points.length}`,
       pending: totals.pending,
-      position: [totals.lat / group.length, totals.lng / group.length],
+      position: [position.lat, position.lng],
       reports: totals.reports,
       urgent: totals.urgent,
     });
   });
 
   return { clusters, singles };
-}
-
-function MapZoomTracker({ onZoomChange }) {
-  const map = useMapEvents({
-    moveend: () => onZoomChange(map.getZoom()),
-    zoomend: () => onZoomChange(map.getZoom()),
-  });
-
-  useEffect(() => {
-    onZoomChange(map.getZoom());
-  }, [map, onZoomChange]);
-
-  return null;
 }
 
 function FitMap({ disabled, points }) {
@@ -156,7 +162,7 @@ function ClusterMarker({ cluster, t }) {
   const map = useMap();
   const hasUrgent = cluster.urgent > 0;
   const displayCount = cluster.count > 99 ? "99+" : String(cluster.count);
-  const size = Math.min(64, Math.max(44, 36 + Math.sqrt(cluster.count) * 2.8));
+  const size = Math.min(54, Math.max(38, 34 + Math.sqrt(cluster.count) * 1.8));
   const label = `${cluster.count} ${t.map.clusterItems}`;
   const icon = useMemo(
     () => L.divIcon({
@@ -191,8 +197,80 @@ function ClusterMarker({ cluster, t }) {
   );
 }
 
+function ClusteredPointLayer({ onSelectReport, selectedReport, t, visiblePoints }) {
+  const map = useMapEvents({
+    moveend: () => setViewState({ bounds: map.getBounds().toBBoxString(), zoom: map.getZoom() }),
+    zoomend: () => setViewState({ bounds: map.getBounds().toBBoxString(), zoom: map.getZoom() }),
+  });
+  const [viewState, setViewState] = useState(() => ({ bounds: "initial", zoom: map.getZoom() }));
+
+  const { clusters, singles } = useMemo(
+    () => clusterPoints(visiblePoints, map, viewState.zoom),
+    [map, viewState, visiblePoints],
+  );
+  const visibleHelpSingles = singles.filter((point) => point.kind === "help");
+  const visibleReportSingles = singles.filter((point) => point.kind === "report");
+
+  return (
+    <>
+      {clusters.map((cluster) => <ClusterMarker cluster={cluster} key={cluster.id} t={t} />)}
+      {visibleHelpSingles.map(({ item, position }) => (
+        <CircleMarker
+          center={position}
+          className={`leaflet-help ${typeClass(item.type)}`}
+          fillColor={typeColors[item.type] || "#006f85"}
+          fillOpacity={isConfirmed(item) ? 0.72 : 0.46}
+          key={`help-${item.external_id || item.name}-${position.join(",")}`}
+          pathOptions={{ color: isConfirmed(item) ? "#2ca365" : "#f59e0b", weight: 1.5 }}
+          radius={isConfirmed(item) ? 7 : 6}
+        >
+          <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
+            <strong>{item.name}</strong>
+            <span>{redactSensitiveText(item.area)}</span>
+            {item.service ? <span>{redactSensitiveText(item.service)}</span> : null}
+            <small>{t.status(item.status || "Sin validar")} · {t.map.helpPoint}</small>
+            <em>{t.trust(trustKey(item))}</em>
+            {item.source_url ? (
+              <a href={item.source_url} rel="noreferrer" target="_blank">
+                {t.detail.openSource}
+              </a>
+            ) : null}
+          </Popup>
+        </CircleMarker>
+      ))}
+      {visibleReportSingles.map(({ item, position }) => (
+        <CircleMarker
+          center={position}
+          className={`leaflet-report ${typeClass(item.type)}`}
+          eventHandlers={{ click: () => onSelectReport(item) }}
+          fillColor={typeColors[item.type] || "#006f85"}
+          fillOpacity={item.priority === "Alta" ? 0.9 : 0.68}
+          key={`report-${item.id}`}
+          pathOptions={{
+            color: markerStroke(item, selectedReport?.id === item.id),
+            weight: markerWeight(item, selectedReport?.id === item.id),
+          }}
+          radius={selectedReport?.id === item.id ? 12 : item.priority === "Alta" ? 9 : 7}
+        >
+          <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
+            <strong>{t.type(item.type)}</strong>
+            <span>{redactSensitiveText(item.area)}</span>
+            <small>{t.priority(item.priority)} · {t.status(item.status)}</small>
+            <em>{t.trust(trustKey(item))}</em>
+            {item.source_url ? (
+              <a href={item.source_url} rel="noreferrer" target="_blank">
+                {t.detail.openSource}
+              </a>
+            ) : null}
+            <button onClick={() => onSelectReport(item)} type="button">{t.map.viewDetail}</button>
+          </Popup>
+        </CircleMarker>
+      ))}
+    </>
+  );
+}
+
 export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, showHelpPoints, showReports, t }) {
-  const [mapZoom, setMapZoom] = useState(6);
   const reportPoints = useMemo(
     () => reports
       .map((report) => ({ item: report, kind: "report", position: toPoint(report) }))
@@ -211,9 +289,6 @@ export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, s
     () => [...(showReports ? reportPoints : []), ...(showHelpPoints ? helpMapPoints : [])],
     [helpMapPoints, reportPoints, showHelpPoints, showReports],
   );
-  const { clusters, singles } = useMemo(() => clusterPoints(visiblePoints, mapZoom), [mapZoom, visiblePoints]);
-  const visibleHelpSingles = singles.filter((point) => point.kind === "help");
-  const visibleReportSingles = singles.filter((point) => point.kind === "report");
 
   return (
     <MapContainer
@@ -233,66 +308,14 @@ export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, s
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <MapZoomTracker onZoomChange={setMapZoom} />
       <FitMap disabled={Boolean(selectedReport)} points={visiblePoints} />
       <FocusSelectedReport report={selectedReport} />
-      {clusters.map((cluster) => <ClusterMarker cluster={cluster} key={cluster.id} t={t} />)}
-      {showHelpPoints
-        ? visibleHelpSingles.map(({ item, position }) => (
-            <CircleMarker
-              center={position}
-              className={`leaflet-help ${typeClass(item.type)}`}
-              fillColor={typeColors[item.type] || "#006f85"}
-              fillOpacity={isConfirmed(item) ? 0.72 : 0.46}
-              key={`help-${item.external_id || item.name}-${position.join(",")}`}
-              pathOptions={{ color: isConfirmed(item) ? "#2ca365" : "#f59e0b", weight: 1.5 }}
-              radius={isConfirmed(item) ? 7 : 6}
-            >
-              <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
-                <strong>{item.name}</strong>
-                <span>{redactSensitiveText(item.area)}</span>
-                {item.service ? <span>{redactSensitiveText(item.service)}</span> : null}
-                <small>{t.status(item.status || "Sin validar")} · {t.map.helpPoint}</small>
-                <em>{t.trust(trustKey(item))}</em>
-                {item.source_url ? (
-                  <a href={item.source_url} rel="noreferrer" target="_blank">
-                    {t.detail.openSource}
-                  </a>
-                ) : null}
-              </Popup>
-            </CircleMarker>
-          ))
-        : null}
-      {showReports
-        ? visibleReportSingles.map(({ item, position }) => (
-            <CircleMarker
-              center={position}
-              className={`leaflet-report ${typeClass(item.type)}`}
-              eventHandlers={{ click: () => onSelectReport(item) }}
-              fillColor={typeColors[item.type] || "#006f85"}
-              fillOpacity={item.priority === "Alta" ? 0.9 : 0.68}
-              key={`report-${item.id}`}
-              pathOptions={{
-                color: markerStroke(item, selectedReport?.id === item.id),
-                weight: markerWeight(item, selectedReport?.id === item.id),
-              }}
-              radius={selectedReport?.id === item.id ? 12 : item.priority === "Alta" ? 9 : 7}
-            >
-              <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={260} minWidth={210}>
-                <strong>{t.type(item.type)}</strong>
-                <span>{redactSensitiveText(item.area)}</span>
-                <small>{t.priority(item.priority)} · {t.status(item.status)}</small>
-                <em>{t.trust(trustKey(item))}</em>
-                {item.source_url ? (
-                  <a href={item.source_url} rel="noreferrer" target="_blank">
-                    {t.detail.openSource}
-                  </a>
-                ) : null}
-                <button onClick={() => onSelectReport(item)} type="button">{t.map.viewDetail}</button>
-              </Popup>
-            </CircleMarker>
-          ))
-        : null}
+      <ClusteredPointLayer
+        onSelectReport={onSelectReport}
+        selectedReport={selectedReport}
+        t={t}
+        visiblePoints={visiblePoints}
+      />
     </MapContainer>
   );
 }

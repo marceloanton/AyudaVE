@@ -31,8 +31,8 @@ $configFile = __DIR__ . '/config.php';
 $sourcesFile = __DIR__ . '/sources.json';
 $adminPin = getenv('AYUDAVE_ADMIN_PIN') ?: '';
 $cronToken = getenv('AYUDAVE_CRON_TOKEN') ?: '';
-$syncSources = ['terremotovenezuela_reports', 'centros_acopio', 'venezuela_reporta_sitios', 'refugios_venezuela', 'acopios_refugios'];
-$publicExportConfig = ['enabled' => true, 'max_reports' => 500, 'max_help_points' => 1000];
+$syncSources = ['terremotovenezuela_reports', 'centros_acopio', 'venezuela_reporta_sitios', 'refugios_venezuela', 'acopios_refugios', 'venezuela_reporta_personas'];
+$publicExportConfig = ['enabled' => true, 'max_reports' => 500, 'max_help_points' => 1000, 'max_missing_people' => 500];
 $externalApiKeys = [];
 $dbConfig = null;
 $dbRequired = false;
@@ -47,6 +47,9 @@ if (is_file($configFile)) {
     }
     if (is_array($config) && isset($config['sync_sources']) && is_array($config['sync_sources'])) {
         $syncSources = array_values(array_filter(array_map('strval', $config['sync_sources'])));
+    }
+    if (!in_array('venezuela_reporta_personas', $syncSources, true)) {
+        $syncSources[] = 'venezuela_reporta_personas';
     }
     if (is_array($config) && isset($config['public_export']) && is_array($config['public_export'])) {
         $publicExportConfig = array_merge($publicExportConfig, $config['public_export']);
@@ -144,6 +147,7 @@ function public_metadata(string $sourcesFile, array $publicExportConfig): array
             'jsonIncremental' => $baseUrl . '/api.php?action=export_public&since=2026-06-28T00:00:00Z',
             'csvReports' => $baseUrl . '/api.php?action=export_csv&dataset=reports',
             'csvHelpPoints' => $baseUrl . '/api.php?action=export_csv&dataset=helpPoints',
+            'csvMissingPeople' => $baseUrl . '/api.php?action=export_csv&dataset=missingPeople',
             'syncStatus' => $baseUrl . '/api.php?action=sync_status',
             'schema' => $baseUrl . '/ayudave-public-export.schema.json',
             'openapi' => $baseUrl . '/openapi.json',
@@ -724,6 +728,46 @@ function ensure_db_schema(PDO $pdo): void
             INDEX idx_members_created_at (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     );
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS missing_people (
+            id VARCHAR(90) NOT NULL PRIMARY KEY,
+            display_name VARCHAR(140) NOT NULL,
+            status VARCHAR(30) NOT NULL,
+            age SMALLINT UNSIGNED NULL,
+            gender VARCHAR(30) NULL,
+            city VARCHAR(120) NULL,
+            zone VARCHAR(160) NULL,
+            last_seen VARCHAR(200) NULL,
+            description TEXT NULL,
+            photo_url VARCHAR(500) NULL,
+            is_minor TINYINT(1) NOT NULL DEFAULT 0,
+            verified TINYINT(1) NOT NULL DEFAULT 0,
+            source VARCHAR(80) NOT NULL,
+            source_url VARCHAR(255) NULL,
+            external_id VARCHAR(120) NOT NULL,
+            source_hash CHAR(64) NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            synced_at DATETIME NULL,
+            INDEX idx_missing_status (status),
+            INDEX idx_missing_source_synced (source, synced_at),
+            INDEX idx_missing_updated (updated_at),
+            UNIQUE KEY uniq_missing_source_external (source, external_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+    foreach ([
+        "ALTER TABLE missing_people ADD COLUMN IF NOT EXISTS source_hash CHAR(64) NULL AFTER external_id",
+        "ALTER TABLE missing_people ADD COLUMN IF NOT EXISTS synced_at DATETIME NULL AFTER updated_at",
+        "ALTER TABLE missing_people ADD INDEX IF NOT EXISTS idx_missing_status (status)",
+        "ALTER TABLE missing_people ADD INDEX IF NOT EXISTS idx_missing_source_synced (source, synced_at)",
+        "ALTER TABLE missing_people ADD UNIQUE KEY IF NOT EXISTS uniq_missing_source_external (source, external_id)",
+    ] as $sql) {
+        try {
+            $pdo->exec($sql);
+        } catch (Throwable $error) {
+            error_log('AyudaVE missing_people migration skipped: ' . $error->getMessage());
+        }
+    }
 }
 
 function format_db_report(array $row): array
@@ -834,6 +878,7 @@ function db_read_health(PDO $pdo): array
 
     $updated = isset($counts['last_updated_at']) ? strtotime((string) $counts['last_updated_at']) : false;
     $synced = isset($counts['last_synced_at']) ? strtotime((string) $counts['last_synced_at']) : false;
+    $peopleCounts = db_missing_people_counts($pdo);
     return [
         'database' => true,
         'total' => (int) ($counts['total'] ?? 0),
@@ -847,6 +892,7 @@ function db_read_health(PDO $pdo): array
         'externalPending' => (int) ($counts['external_pending'] ?? 0),
         'lastUpdatedAt' => $updated ? date(DATE_ATOM, $updated) : null,
         'lastSyncedAt' => $synced ? date(DATE_ATOM, $synced) : null,
+        'missingPeople' => $peopleCounts,
         'sources' => db_read_sync_summary($pdo),
     ];
 }
@@ -1133,7 +1179,100 @@ function format_public_help_point(array $row): array
     ];
 }
 
-function db_read_public_export(PDO $pdo, int $maxReports, int $maxHelpPoints, ?array $since = null): array
+function map_missing_person_status(string $status): string
+{
+    $normalized = strtolower(trim($status));
+    return match ($normalized) {
+        'a_salvo', 'encontrado', 'encontrada', 'found', 'safe' => 'Encontrado',
+        default => 'Buscando',
+    };
+}
+
+function safe_person_display_name(string $name, bool $isMinor): string
+{
+    $name = clean_text($name, 140);
+    if ($name === '') {
+        return 'Persona sin identificar';
+    }
+    if (!$isMinor) {
+        return $name;
+    }
+    $parts = preg_split('/\s+/', $name) ?: [];
+    $first = $parts[0] ?? 'Menor';
+    $lastInitial = isset($parts[1]) ? mb_substr((string) $parts[1], 0, 1, 'UTF-8') . '.' : '';
+    return trim($first . ' ' . $lastInitial);
+}
+
+function format_missing_person(array $row): array
+{
+    $created = isset($row['created_at']) ? strtotime((string) $row['created_at']) : false;
+    $updated = isset($row['updated_at']) ? strtotime((string) $row['updated_at']) : false;
+    $synced = isset($row['synced_at']) ? strtotime((string) $row['synced_at']) : false;
+    $description = redact_sensitive_text((string) ($row['description'] ?? ''));
+    return [
+        'id' => (string) ($row['id'] ?? ''),
+        'displayName' => (string) ($row['display_name'] ?? ''),
+        'status' => (string) ($row['status'] ?? 'Buscando'),
+        'age' => isset($row['age']) ? (int) $row['age'] : null,
+        'gender' => (string) ($row['gender'] ?? ''),
+        'city' => (string) ($row['city'] ?? ''),
+        'zone' => (string) ($row['zone'] ?? ''),
+        'lastSeen' => (string) ($row['last_seen'] ?? ''),
+        'description' => $description['text'],
+        'photoUrl' => (string) ($row['photo_url'] ?? ''),
+        'isMinor' => !empty($row['is_minor']),
+        'verified' => !empty($row['verified']),
+        'source' => (string) ($row['source'] ?? ''),
+        'sourceUrl' => (string) ($row['source_url'] ?? ''),
+        'externalId' => (string) ($row['external_id'] ?? ''),
+        'createdAt' => $created ? date(DATE_ATOM, $created) : null,
+        'updatedAt' => $updated ? date(DATE_ATOM, $updated) : null,
+        'syncedAt' => $synced ? date(DATE_ATOM, $synced) : null,
+    ];
+}
+
+function db_read_missing_people(PDO $pdo, int $limit = 300, ?array $since = null): array
+{
+    $limit = max(1, min(1000, $limit));
+    $where = '';
+    $params = [];
+    if ($since) {
+        $where = 'WHERE COALESCE(updated_at, created_at, synced_at) >= :since';
+        $params[':since'] = $since['mysql'];
+    }
+    $stmt = $pdo->prepare(
+        "SELECT id, display_name, status, age, gender, city, zone, last_seen, description, photo_url, is_minor, verified, source, source_url, external_id, created_at, updated_at, synced_at
+         FROM missing_people
+         {$where}
+         ORDER BY
+            CASE WHEN status = 'Buscando' THEN 0 ELSE 1 END,
+            COALESCE(updated_at, created_at, synced_at) DESC
+         LIMIT {$limit}"
+    );
+    $stmt->execute($params);
+    return array_map('format_missing_person', $stmt->fetchAll());
+}
+
+function db_missing_people_counts(PDO $pdo): array
+{
+    $row = $pdo->query(
+        "SELECT
+            COUNT(*) AS total,
+            SUM(status = 'Buscando') AS searching,
+            SUM(status = 'Encontrado') AS found,
+            MAX(synced_at) AS last_synced_at
+         FROM missing_people"
+    )->fetch() ?: [];
+    $synced = isset($row['last_synced_at']) ? strtotime((string) $row['last_synced_at']) : false;
+    return [
+        'total' => (int) ($row['total'] ?? 0),
+        'searching' => (int) ($row['searching'] ?? 0),
+        'found' => (int) ($row['found'] ?? 0),
+        'lastSyncedAt' => $synced ? date(DATE_ATOM, $synced) : null,
+    ];
+}
+
+function db_read_public_export(PDO $pdo, int $maxReports, int $maxHelpPoints, int $maxMissingPeople = 500, ?array $since = null): array
 {
     $reportsStmt = $pdo->prepare(
         "SELECT id, type, area, city, priority, status, detail, lat, lng, source, source_url, external_id, privacy_review, created_at, updated_at, synced_at
@@ -1170,10 +1309,12 @@ function db_read_public_export(PDO $pdo, int $maxReports, int $maxHelpPoints, ?a
     }
     $helpStmt->bindValue(':limit', max(1, min($maxHelpPoints, 3000)), PDO::PARAM_INT);
     $helpStmt->execute();
+    $missingPeople = db_read_missing_people($pdo, $maxMissingPeople, $since);
 
     return [
         'reports' => array_map('format_public_report', $reportsStmt->fetchAll()),
         'helpPoints' => array_map('format_public_help_point', $helpStmt->fetchAll()),
+        'missingPeople' => $missingPeople,
     ];
 }
 
@@ -1183,7 +1324,7 @@ function file_read_public_export(string $dataFile, int $maxReports, ?array $sinc
     if ($since !== null) {
         $reports = array_values(array_filter($reports, static fn (array $report): bool => payload_changed_at($report) >= $since['timestamp']));
     }
-    return ['reports' => $reports, 'helpPoints' => []];
+    return ['reports' => $reports, 'helpPoints' => [], 'missingPeople' => []];
 }
 
 function db_insert_report(PDO $pdo, array $report): array
@@ -1758,6 +1899,128 @@ function normalize_acopios_refugios(): array
     return $rows;
 }
 
+function normalize_venezuela_reporta_personas(): array
+{
+    $baseUrl = 'https://venezuelareporta.org/api/v1/personas';
+    $rows = [];
+    $limit = 100;
+    for ($offset = 0; $offset < 500; $offset += $limit) {
+        $payload = http_get_json($baseUrl . '?limit=' . $limit . '&offset=' . $offset);
+        $items = is_array($payload['personas'] ?? null) ? $payload['personas'] : [];
+        if (!$items) {
+            break;
+        }
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+            $externalId = clean_text($item['id'] ?? stable_hash($item), 120);
+            $isMinor = !empty($item['menor']);
+            $displayName = safe_person_display_name((string) ($item['nombre'] ?? ''), $isMinor);
+            $city = clean_text($item['ciudad'] ?? '', 120);
+            $zone = clean_text($item['zona'] ?? '', 160);
+            $lastSeen = clean_text($item['ultima_vez'] ?? '', 200);
+            $description = redact_sensitive_text(clean_text($item['descripcion'] ?? '', 420));
+            $age = isset($item['edad']) && is_numeric($item['edad']) ? max(0, min(120, (int) $item['edad'])) : null;
+            $createdAt = strtotime((string) ($item['created_at'] ?? '')) ?: time();
+            $verifiedAt = strtotime((string) ($item['verificado_at'] ?? '')) ?: $createdAt;
+            $sourceUrl = clean_text($item['ficha_url'] ?? 'https://venezuelareporta.org/', 255);
+            $photoUrl = clean_text($item['foto_url'] ?? '', 500);
+            if ($isMinor && $photoUrl !== '' && !str_contains($photoUrl, 'foto-difuminada')) {
+                $photoUrl = '';
+            }
+            $rows[] = [
+                'id' => 'person-vreporta-' . substr(stable_hash($externalId), 0, 18),
+                'display_name' => $displayName,
+                'status' => map_missing_person_status((string) ($item['status'] ?? 'buscando')),
+                'age' => $age,
+                'gender' => clean_text($item['genero'] ?? '', 30),
+                'city' => $city,
+                'zone' => $zone,
+                'last_seen' => $lastSeen,
+                'description' => $description['text'],
+                'photo_url' => $photoUrl,
+                'is_minor' => $isMinor ? 1 : 0,
+                'verified' => !empty($item['verificado']) ? 1 : 0,
+                'source' => 'venezuelareporta.org',
+                'source_url' => $sourceUrl,
+                'external_id' => $externalId,
+                'source_hash' => stable_hash([
+                    $item['status'] ?? '',
+                    $displayName,
+                    $city,
+                    $zone,
+                    $lastSeen,
+                    $item['verificado'] ?? false,
+                    $item['verificado_at'] ?? null,
+                    $item['created_at'] ?? null,
+                ]),
+                'created_at' => date('Y-m-d H:i:s', $createdAt),
+                'updated_at' => date('Y-m-d H:i:s', max($createdAt, $verifiedAt)),
+            ];
+        }
+        if (count($items) < $limit) {
+            break;
+        }
+    }
+    return $rows;
+}
+
+function db_upsert_missing_people(PDO $pdo, array $rows): array
+{
+    $stats = ['fetched' => count($rows), 'inserted' => 0, 'updated' => 0, 'skipped' => 0];
+    $sql = "INSERT INTO missing_people
+        (id, display_name, status, age, gender, city, zone, last_seen, description, photo_url, is_minor, verified, source, source_url, external_id, source_hash, created_at, updated_at, synced_at)
+        VALUES
+        (:id, :display_name, :status, :age, :gender, :city, :zone, :last_seen, :description, :photo_url, :is_minor, :verified, :source, :source_url, :external_id, :source_hash, :created_at, :updated_at, NOW())
+        ON DUPLICATE KEY UPDATE
+          display_name = VALUES(display_name),
+          status = VALUES(status),
+          age = VALUES(age),
+          gender = VALUES(gender),
+          city = VALUES(city),
+          zone = VALUES(zone),
+          last_seen = VALUES(last_seen),
+          description = VALUES(description),
+          photo_url = VALUES(photo_url),
+          is_minor = VALUES(is_minor),
+          verified = VALUES(verified),
+          source_url = VALUES(source_url),
+          source_hash = VALUES(source_hash),
+          updated_at = IF(source_hash <> VALUES(source_hash), NOW(), updated_at),
+          synced_at = NOW()";
+    $stmt = $pdo->prepare($sql);
+    foreach ($rows as $row) {
+        try {
+            $stmt->execute([
+                ':id' => $row['id'],
+                ':display_name' => $row['display_name'],
+                ':status' => $row['status'],
+                ':age' => $row['age'],
+                ':gender' => $row['gender'],
+                ':city' => $row['city'],
+                ':zone' => $row['zone'],
+                ':last_seen' => $row['last_seen'],
+                ':description' => $row['description'],
+                ':photo_url' => $row['photo_url'],
+                ':is_minor' => $row['is_minor'],
+                ':verified' => $row['verified'],
+                ':source' => $row['source'],
+                ':source_url' => $row['source_url'],
+                ':external_id' => $row['external_id'],
+                ':source_hash' => $row['source_hash'],
+                ':created_at' => $row['created_at'],
+                ':updated_at' => $row['updated_at'],
+            ]);
+            $affected = $stmt->rowCount();
+            if ($affected === 1) $stats['inserted']++;
+            elseif ($affected === 2) $stats['updated']++;
+            else $stats['skipped']++;
+        } catch (Throwable $error) {
+            $stats['skipped']++;
+        }
+    }
+    return $stats;
+}
+
 function db_upsert_external_reports(PDO $pdo, array $rows): array
 {
     $stats = ['fetched' => count($rows), 'inserted' => 0, 'updated' => 0, 'skipped' => 0];
@@ -1820,6 +2083,10 @@ function db_upsert_external_reports(PDO $pdo, array $rows): array
 
 function sync_external_source(PDO $pdo, string $source, array $externalApiKeys): array
 {
+    if ($source === 'venezuela_reporta_personas') {
+        return db_upsert_missing_people($pdo, normalize_venezuela_reporta_personas());
+    }
+
     $rows = match ($source) {
         'terremotovenezuela_reports' => normalize_terremoto_reports(),
         'centros_acopio' => normalize_centros_acopio(),
@@ -1916,9 +2183,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         $maxReports = (int) ($publicExportConfig['max_reports'] ?? 500);
         $maxHelpPoints = (int) ($publicExportConfig['max_help_points'] ?? 1000);
+        $maxMissingPeople = (int) ($publicExportConfig['max_missing_people'] ?? 500);
         $since = parse_export_since($_GET['since'] ?? $_GET['updated_since'] ?? '');
         $export = $pdo
-            ? db_read_public_export($pdo, $maxReports, $maxHelpPoints, $since)
+            ? db_read_public_export($pdo, $maxReports, $maxHelpPoints, $maxMissingPeople, $since)
             : file_read_public_export($dataFile, $maxReports, $since);
         $policy = public_data_policy();
         respond(200, [
@@ -1933,9 +2201,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'counts' => [
                 'reports' => count($export['reports']),
                 'helpPoints' => count($export['helpPoints']),
+                'missingPeople' => count($export['missingPeople']),
             ],
             'reports' => $export['reports'],
             'helpPoints' => $export['helpPoints'],
+            'missingPeople' => $export['missingPeople'],
         ]);
     }
     if ($action === 'export_csv') {
@@ -1945,14 +2215,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $dataset = clean_text($_GET['dataset'] ?? 'reports', 40);
         $maxReports = (int) ($publicExportConfig['max_reports'] ?? 500);
         $maxHelpPoints = (int) ($publicExportConfig['max_help_points'] ?? 1000);
+        $maxMissingPeople = (int) ($publicExportConfig['max_missing_people'] ?? 500);
         $export = $pdo
-            ? db_read_public_export($pdo, $maxReports, $maxHelpPoints)
+            ? db_read_public_export($pdo, $maxReports, $maxHelpPoints, $maxMissingPeople)
             : file_read_public_export($dataFile, $maxReports);
         if ($dataset === 'helpPoints') {
             respond_csv(
                 'ayudave-help-points.csv',
                 ['id', 'name', 'type', 'service', 'area', 'status', 'trustLevel', 'trustLabel', 'lat', 'lng', 'source', 'source_url', 'external_id', 'updatedAt', 'syncedAt'],
                 $export['helpPoints']
+            );
+        }
+        if ($dataset === 'missingPeople') {
+            respond_csv(
+                'ayudave-missing-people.csv',
+                ['id', 'displayName', 'status', 'age', 'gender', 'city', 'zone', 'lastSeen', 'description', 'photoUrl', 'isMinor', 'verified', 'source', 'sourceUrl', 'externalId', 'createdAt', 'updatedAt', 'syncedAt'],
+                $export['missingPeople']
             );
         }
         respond_csv(
@@ -1983,7 +2261,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     $reports = $pdo ? db_read_reports($pdo) : read_reports($dataFile);
     $helpPoints = $pdo ? db_read_help_points($pdo) : [];
-    respond(200, ['ok' => true, 'reports' => array_slice($reports, 0, 200), 'helpPoints' => $helpPoints]);
+    $missingPeople = $pdo ? db_read_missing_people($pdo, 300) : [];
+    respond(200, ['ok' => true, 'reports' => array_slice($reports, 0, 200), 'helpPoints' => $helpPoints, 'missingPeople' => $missingPeople]);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

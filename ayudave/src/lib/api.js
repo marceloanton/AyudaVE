@@ -21,6 +21,7 @@ export async function fetchServerPayload() {
   return {
     reports: payload.reports,
     helpPoints: Array.isArray(payload.helpPoints) ? payload.helpPoints : [],
+    missingPeople: Array.isArray(payload.missingPeople) ? payload.missingPeople : [],
   };
 }
 

@@ -3,7 +3,7 @@
   "info": {
     "title": "AyudaVE Public API",
     "version": "1.0.0",
-    "description": "Public synchronization endpoints for AyudaVE reports, aid points, metadata and CSV exports, plus private community registration intake. Public exports redact personal contacts and preserve source attribution.",
+    "description": "Public synchronization endpoints for AyudaVE reports, aid points, missing/found people, metadata and CSV exports, plus private community registration intake. Public exports redact personal contacts and preserve source attribution.",
     "contact": {
       "name": "AyudaVE",
       "url": "https://example.org/"
@@ -34,7 +34,7 @@
       "get": {
         "tags": ["Public data"],
         "summary": "Read AyudaVE public API actions.",
-        "description": "Use action=metadata for API metadata, action=sync_status for source freshness, action=export_public for JSON synchronization, or action=export_csv with dataset=reports/helpPoints for CSV downloads.",
+        "description": "Use action=metadata for API metadata, action=sync_status for source freshness, action=export_public for JSON synchronization, or action=export_csv with dataset=reports/helpPoints/missingPeople for CSV downloads.",
         "parameters": [
           {
             "name": "action",
@@ -57,7 +57,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["reports", "helpPoints"]
+              "enum": ["reports", "helpPoints", "missingPeople"]
             },
             "description": "Required only when action=export_csv."
           },
@@ -229,6 +229,7 @@
               "json": { "type": "string", "format": "uri" },
               "csvReports": { "type": "string", "format": "uri" },
               "csvHelpPoints": { "type": "string", "format": "uri" },
+              "csvMissingPeople": { "type": "string", "format": "uri" },
               "syncStatus": { "type": "string", "format": "uri" },
               "schema": { "type": "string", "format": "uri" },
               "openapi": { "type": "string", "format": "uri" },
@@ -285,7 +286,7 @@
       },
       "PublicExportResponse": {
         "type": "object",
-        "required": ["ok", "schema", "generatedAt", "source", "license", "usage", "reports", "helpPoints"],
+        "required": ["ok", "schema", "generatedAt", "source", "license", "usage", "reports", "helpPoints", "missingPeople"],
         "properties": {
           "ok": { "type": "boolean" },
           "schema": { "type": "string", "enum": ["ayudave-public-export-v1"] },
@@ -299,7 +300,8 @@
             "type": "object",
             "properties": {
               "reports": { "type": "integer", "minimum": 0 },
-              "helpPoints": { "type": "integer", "minimum": 0 }
+              "helpPoints": { "type": "integer", "minimum": 0 },
+              "missingPeople": { "type": "integer", "minimum": 0 }
             }
           },
           "reports": {
@@ -309,6 +311,10 @@
           "helpPoints": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/HelpPoint" }
+          },
+          "missingPeople": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MissingPerson" }
           }
         }
       },
@@ -374,6 +380,30 @@
           "source": { "type": ["string", "null"] },
           "source_url": { "type": ["string", "null"], "format": "uri" },
           "external_id": { "type": ["string", "null"] },
+          "updatedAt": { "type": ["string", "null"] },
+          "syncedAt": { "type": ["string", "null"] }
+        }
+      },
+      "MissingPerson": {
+        "type": "object",
+        "required": ["id", "displayName", "status", "city", "verified", "source", "sourceUrl", "externalId"],
+        "properties": {
+          "id": { "type": "string" },
+          "displayName": { "type": "string" },
+          "status": { "type": "string", "enum": ["Buscando", "Encontrado"] },
+          "age": { "type": ["integer", "null"] },
+          "gender": { "type": "string" },
+          "city": { "type": "string" },
+          "zone": { "type": "string" },
+          "lastSeen": { "type": "string" },
+          "description": { "type": "string" },
+          "photoUrl": { "type": "string" },
+          "isMinor": { "type": "boolean" },
+          "verified": { "type": "boolean" },
+          "source": { "type": "string" },
+          "sourceUrl": { "type": "string", "format": "uri" },
+          "externalId": { "type": "string" },
+          "createdAt": { "type": ["string", "null"] },
           "updatedAt": { "type": ["string", "null"] },
           "syncedAt": { "type": ["string", "null"] }
         }

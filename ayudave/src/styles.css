@@ -485,6 +485,7 @@
   }
 
   .view-directorio,
+  .view-personas,
   .view-alertas,
   .view-ayuda {
     @apply overflow-auto p-4;
@@ -621,6 +622,7 @@
   }
 
   .cluster-marker {
+    position: relative;
     @apply grid place-items-center rounded-full border-[3px] border-white bg-ayuda-teal text-white;
     height: var(--cluster-size);
     width: var(--cluster-size);
@@ -628,8 +630,16 @@
   }
 
   .cluster-marker.is-urgent {
-    @apply bg-ayuda-red;
-    box-shadow: 0 8px 18px rgba(143, 33, 29, 0.32), 0 0 0 3px rgba(239, 79, 73, 0.18);
+    @apply bg-ayuda-teal;
+    box-shadow: 0 8px 18px rgba(0, 55, 70, 0.32), 0 0 0 3px rgba(239, 79, 73, 0.22);
+  }
+
+  .cluster-marker.is-urgent::after {
+    @apply absolute rounded-full border-2 border-white bg-ayuda-red content-[''];
+    height: 12px;
+    right: -1px;
+    top: -1px;
+    width: 12px;
   }
 
   .cluster-marker strong {
@@ -1711,6 +1721,143 @@
 
   .utility-popover-actions a {
     @apply min-h-8 px-2 text-xs;
+  }
+
+  .people-view {
+    @apply grid gap-4 rounded border border-ayuda-line bg-white p-5;
+  }
+
+  .people-header {
+    @apply flex flex-wrap items-start justify-between gap-4;
+  }
+
+  .people-header h1 {
+    @apply m-0 text-3xl leading-tight text-ayuda-teal-dark;
+  }
+
+  .people-header p,
+  .people-privacy {
+    @apply m-0 max-w-[860px] text-sm leading-normal text-ayuda-muted;
+  }
+
+  .people-header a,
+  .person-card footer a {
+    @apply inline-flex min-h-10 items-center rounded-[5px] border border-ayuda-teal bg-white px-3 text-sm font-black text-ayuda-teal no-underline;
+  }
+
+  .people-summary {
+    @apply grid gap-2;
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
+  }
+
+  .people-summary article {
+    @apply rounded border border-ayuda-line bg-[#f8fbfc] px-3 py-2;
+  }
+
+  .people-summary article.is-alert {
+    @apply border-[#f2d48b] bg-[#fff7df];
+  }
+
+  .people-summary article.is-ok {
+    @apply border-[#a9d7a3] bg-[#edf8ee];
+  }
+
+  .people-summary strong {
+    @apply block text-2xl leading-none text-ayuda-teal-dark;
+  }
+
+  .people-summary span {
+    @apply mt-1 block text-[11px] font-black uppercase text-ayuda-muted;
+  }
+
+  .people-tools {
+    @apply grid gap-3;
+    grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .people-tools input {
+    @apply min-h-11 rounded-[5px] border border-ayuda-line bg-white px-3 text-sm font-bold outline-none;
+  }
+
+  .people-tools div {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .people-tools button {
+    @apply min-h-11 rounded border border-ayuda-line bg-white px-3 text-sm font-black text-ayuda-muted;
+  }
+
+  .people-tools button.is-active {
+    @apply border-ayuda-teal bg-[#e7f5f8] text-ayuda-teal;
+  }
+
+  .people-list {
+    @apply grid gap-2.5;
+  }
+
+  .person-card {
+    @apply grid gap-3 rounded border border-ayuda-line bg-[#fbfdfe] p-3;
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .person-card img,
+  .person-avatar {
+    @apply h-[82px] w-[82px] rounded object-cover;
+  }
+
+  .person-avatar {
+    @apply grid place-items-center bg-[#e7f5f8] text-3xl font-black text-ayuda-teal;
+  }
+
+  .person-title-row {
+    @apply flex flex-wrap items-start justify-between gap-2;
+  }
+
+  .person-title-row h2 {
+    @apply m-0 text-lg leading-tight text-ayuda-text;
+  }
+
+  .person-title-row span,
+  .person-card footer span {
+    @apply rounded-full px-2 py-1 text-[11px] font-black uppercase;
+  }
+
+  .person-title-row span.is-searching {
+    @apply bg-[#fff3da] text-[#8a5c00];
+  }
+
+  .person-title-row span.is-found {
+    @apply bg-[#edf8ee] text-[#2d6d34];
+  }
+
+  .person-card p {
+    @apply my-1 text-sm leading-normal text-ayuda-muted;
+  }
+
+  .person-card dl {
+    @apply my-2 grid gap-1 text-sm;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .person-card dt {
+    @apply font-black uppercase text-ayuda-muted;
+  }
+
+  .person-card dd {
+    @apply m-0 font-bold text-ayuda-text;
+    overflow-wrap: anywhere;
+  }
+
+  .person-description {
+    @apply rounded border border-ayuda-line bg-white px-3 py-2;
+  }
+
+  .person-card footer {
+    @apply mt-2 flex flex-wrap items-center gap-2;
+  }
+
+  .person-card footer span {
+    @apply bg-[#eef5f7] text-ayuda-teal-dark;
   }
 
   .directory-view {
