@@ -27,7 +27,9 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
   const [showReports, setShowReports] = useState(true);
   const [showHelpPoints, setShowHelpPoints] = useState(true);
   const [showHeat, setShowHeat] = useState(false);
-  const [showAffectedZone, setShowAffectedZone] = useState(true);
+  const [showAffectedZone, setShowAffectedZone] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);
   const [validationFilter, setValidationFilter] = useState("all");
   const filteredReports = useMemo(
     () => reports.filter((report) => matchesValidationFilter(report, validationFilter)),
@@ -96,37 +98,59 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
           {t.map.helpPoints}
         </button>
       </div>
-      <div className="map-type-filter" role="group" aria-label={t.map.filterByType}>
-        {["Todos", ...needTypes].map((type) => (
-          <button
-            aria-pressed={currentType === type}
-            className={currentType === type ? "is-active" : ""}
-            key={type}
-            onClick={() => setCurrentType(type)}
-            type="button"
-          >
-            {type === "Energia/senal" ? t.type(type).split(" / ")[0] : t.type(type)}
-          </button>
-        ))}
+      <div className="map-toolbox" aria-label={t.map.mapTools}>
+        <button
+          aria-expanded={filtersOpen}
+          className={filtersOpen ? "is-active" : ""}
+          onClick={() => setFiltersOpen((value) => !value)}
+          type="button"
+        >
+          <Icon name="sliders" />
+          {t.map.filters}
+        </button>
+        <button
+          aria-expanded={layersOpen}
+          className={layersOpen ? "is-active" : ""}
+          onClick={() => setLayersOpen((value) => !value)}
+          type="button"
+        >
+          <Icon name="layers" />
+          {t.map.layers}
+        </button>
       </div>
-      <div className="map-validation-filter" role="group" aria-label={t.map.filterByValidation}>
-        {[
-          ["all", t.map.validationAll],
-          ["confirmed", t.map.validationConfirmed],
-          ["pending", t.map.validationPending],
-        ].map(([value, label]) => (
-          <button
-            aria-pressed={validationFilter === value}
-            className={validationFilter === value ? "is-active" : ""}
-            key={value}
-            onClick={() => setValidationFilter(value)}
-            type="button"
-          >
-            {label}
-          </button>
-        ))}
+      <div className={`map-filter-drawer ${filtersOpen ? "is-open" : ""}`} hidden={!filtersOpen}>
+        <div className="map-type-filter" role="group" aria-label={t.map.filterByType}>
+          {["Todos", ...needTypes].map((type) => (
+            <button
+              aria-pressed={currentType === type}
+              className={currentType === type ? "is-active" : ""}
+              key={type}
+              onClick={() => setCurrentType(type)}
+              type="button"
+            >
+              {type === "Energia/senal" ? t.type(type).split(" / ")[0] : t.type(type)}
+            </button>
+          ))}
+        </div>
+        <div className="map-validation-filter" role="group" aria-label={t.map.filterByValidation}>
+          {[
+            ["all", t.map.validationAll],
+            ["confirmed", t.map.validationConfirmed],
+            ["pending", t.map.validationPending],
+          ].map(([value, label]) => (
+            <button
+              aria-pressed={validationFilter === value}
+              className={validationFilter === value ? "is-active" : ""}
+              key={value}
+              onClick={() => setValidationFilter(value)}
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="map-layer-filter" role="group" aria-label={t.map.filterByLayer}>
+      <div className={`map-layer-filter ${layersOpen ? "is-open" : ""}`} role="group" aria-label={t.map.filterByLayer} hidden={!layersOpen}>
         <button
           aria-pressed={showHeat}
           className={showHeat ? "is-active heat-toggle" : "heat-toggle"}
@@ -178,7 +202,6 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
               {t.map.affectedSource}: USGS
             </a>
           ) : null}
-          {showAffectedZone ? <small className="legend-note">{t.map.affectedZoneNote}</small> : null}
         </div>
       </div>
     </div>

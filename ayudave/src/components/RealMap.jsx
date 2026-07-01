@@ -18,16 +18,10 @@ const typeColors = {
   "Energia/senal": "#d49a00",
 };
 
-const affectedZoneSource = {
-  label: "USGS",
-  url: "https://www.usgs.gov/programs/landslide-hazards/science/2026-venezuela-sequence-earthquake-triggered-landslide-hazards",
-};
-
 const affectedZones = [
   {
     id: "north-central-impact-belt",
     level: "major",
-    name: "Referencia norte-centro",
     positions: [
       [10.95, -69.25],
       [10.75, -68.15],
@@ -42,7 +36,6 @@ const affectedZones = [
   {
     id: "yaracuy-carabobo-reference",
     level: "high",
-    name: "Referencia Yaracuy-Carabobo",
     positions: [
       [10.75, -69.05],
       [10.55, -68.25],
@@ -340,7 +333,7 @@ function ClusteredPointLayer({ onSelectReport, selectedReport, t, visiblePoints 
   );
 }
 
-function AffectedZoneLayer({ t }) {
+function AffectedZoneLayer() {
   return (
     <>
       {affectedZones.map((zone) => (
@@ -352,21 +345,12 @@ function AffectedZoneLayer({ t }) {
           pathOptions={{
             color: zone.level === "high" ? "#ef4f49" : "#d49a00",
             fillColor: zone.level === "high" ? "#ef4f49" : "#d49a00",
-            fillOpacity: zone.level === "high" ? 0.12 : 0.08,
-            opacity: 0.78,
-            weight: zone.level === "high" ? 2 : 1.5,
+            fillOpacity: zone.level === "high" ? 0.08 : 0.05,
+            opacity: 0.55,
+            weight: zone.level === "high" ? 1.6 : 1.2,
           }}
           positions={zone.positions}
-        >
-          <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={280} minWidth={220}>
-            <strong>{t.map.affectedZone}</strong>
-            <span>{zone.name}</span>
-            <small>{t.map.affectedZoneNote}</small>
-            <a href={affectedZoneSource.url} rel="noreferrer" target="_blank">
-              {t.map.source}: {affectedZoneSource.label}
-            </a>
-          </Popup>
-        </Polygon>
+        />
       ))}
     </>
   );
@@ -441,7 +425,7 @@ export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, s
       <Pane className="heat-pane" name="heatPane" style={{ zIndex: 340 }} />
       <FitMap disabled={Boolean(selectedReport)} points={visiblePoints} />
       <FocusSelectedReport report={selectedReport} />
-      {showAffectedZone ? <AffectedZoneLayer t={t} /> : null}
+      {showAffectedZone ? <AffectedZoneLayer /> : null}
       {showHeat ? <HeatLayer points={visiblePoints} t={t} /> : null}
       <ClusteredPointLayer
         onSelectReport={onSelectReport}

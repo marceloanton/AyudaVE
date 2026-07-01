@@ -541,6 +541,8 @@
 
   .map-search,
   .map-actions,
+  .map-toolbox,
+  .map-filter-drawer,
   .map-type-filter,
   .map-validation-filter,
   .map-control {
@@ -577,6 +579,36 @@
     @apply inline-flex items-center gap-2 px-4;
   }
 
+  .map-toolbox {
+    @apply left-5 top-[66px] flex gap-2;
+  }
+
+  .map-toolbox button {
+    @apply inline-flex min-h-9 items-center gap-2 rounded-[5px] border border-ayuda-line bg-white px-3 text-xs font-black text-ayuda-teal-dark shadow-[0_8px_18px_rgba(26,45,51,0.08)];
+  }
+
+  .map-toolbox button.is-active {
+    @apply border-ayuda-teal bg-ayuda-teal text-white;
+  }
+
+  .map-toolbox .nav-icon {
+    @apply h-4 w-4;
+  }
+
+  .map-filter-drawer {
+    @apply left-5 top-[112px] grid max-w-[min(760px,calc(100%-40px))] gap-1.5 rounded border border-ayuda-line bg-white/95 p-1.5 shadow-[0_12px_28px_rgba(26,45,51,0.16)];
+  }
+
+  .map-filter-drawer[hidden],
+  .map-layer-filter[hidden] {
+    display: none;
+  }
+
+  .map-filter-drawer .map-type-filter,
+  .map-filter-drawer .map-validation-filter {
+    @apply static flex max-w-full gap-1.5 overflow-x-auto rounded-none bg-transparent p-0 shadow-none;
+  }
+
   .map-type-filter {
     @apply left-5 top-[66px] flex max-w-[calc(100%-40px)] gap-1.5 overflow-x-auto rounded bg-white/95 p-1.5 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
   }
@@ -586,7 +618,7 @@
   }
 
   .map-layer-filter {
-    @apply absolute left-5 top-[162px] z-[800] flex max-w-[calc(100%-40px)] gap-1.5 overflow-x-auto rounded bg-white/95 p-1.5 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
+    @apply absolute left-40 top-[66px] z-[800] flex max-w-[calc(100%-180px)] gap-1.5 overflow-x-auto rounded border border-ayuda-line bg-white/95 p-1.5 shadow-[0_12px_28px_rgba(26,45,51,0.16)];
   }
 
   .tabs,
@@ -768,11 +800,33 @@
 
   .operations-strip {
     @apply grid min-h-0 items-stretch gap-2 border-b border-ayuda-line bg-[#f8fbfc] px-3 py-2;
-    grid-template-columns: minmax(430px, 0.9fr) minmax(0, 1.1fr);
+    grid-template-columns: minmax(360px, 0.85fr) minmax(250px, 0.8fr) minmax(0, 1fr);
   }
 
   .operations-strip:not(:has(.source-freshness)) {
     grid-template-columns: 1fr;
+  }
+
+  .seismic-reference {
+    @apply grid min-w-0 items-center gap-2 rounded border border-[#d9c36b] bg-[#fffbed] px-2.5 py-1.5;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .seismic-reference strong,
+  .seismic-reference p {
+    @apply m-0 block leading-tight;
+  }
+
+  .seismic-reference strong {
+    @apply text-xs font-black uppercase text-[#7a5800];
+  }
+
+  .seismic-reference p {
+    @apply text-xs font-bold text-[#66592a];
+  }
+
+  .seismic-reference a {
+    @apply inline-flex min-h-8 items-center justify-center rounded border border-[#d9c36b] bg-white px-3 text-xs font-black uppercase text-[#7a5800] no-underline;
   }
 
   .stats-strip {
@@ -2795,6 +2849,14 @@
     font-size: 13px;
   }
 
+  .map-toolbox {
+    top: 58px;
+  }
+
+  .map-filter-drawer {
+    top: 100px;
+  }
+
   .map-type-filter {
     top: 58px;
     padding: 6px;
@@ -2806,7 +2868,7 @@
   }
 
   .map-layer-filter {
-    top: 150px;
+    top: 58px;
     padding: 6px;
   }
 
@@ -2928,6 +2990,10 @@
 
   .source-freshness {
     grid-template-columns: 1fr;
+  }
+
+  .seismic-reference {
+    grid-template-columns: 1fr auto;
   }
 
   .source-freshness ul {
@@ -3114,6 +3180,23 @@
     width: 17px;
   }
 
+  .map-toolbox {
+    left: 14px;
+    top: 64px;
+  }
+
+  .map-toolbox button {
+    min-height: 40px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .map-filter-drawer {
+    left: 14px;
+    top: 110px;
+    max-width: calc(100% - 28px);
+  }
+
   .map-type-filter {
     left: 14px;
     top: 64px;
@@ -3130,7 +3213,7 @@
 
   .map-layer-filter {
     left: 14px;
-    top: 168px;
+    top: 166px;
     max-width: calc(100% - 28px);
     padding: 4px;
   }

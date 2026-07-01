@@ -22,6 +22,7 @@ import { PeopleView } from "./PeopleView";
 import { ReportDetail } from "./ReportDetail";
 import { ReportPanel } from "./ReportPanel";
 import { ReportsList } from "./ReportsList";
+import { SeismicReference } from "./SeismicReference";
 import { SourceFreshness } from "./SourceFreshness";
 import { StatsStrip } from "./StatsStrip";
 import { Topbar } from "./Topbar";
@@ -359,6 +360,7 @@ export function PublicApp() {
                   serverSyncAvailable={serverSyncAvailable}
                   t={t}
                 />
+                <SeismicReference t={t} />
                 <SourceFreshness syncStatus={syncStatus} t={t} />
               </div>
               <div className="content-grid">
