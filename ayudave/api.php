@@ -5,7 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
 
-$publicReadActions = ['metadata', 'sync_status', 'export_public', 'export_csv'];
+$publicReadActions = ['metadata', 'sync_status', 'export_public', 'export_csv', 'people'];
 $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 $requestAction = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['action'] ?? ''));
 if (in_array($requestAction, $publicReadActions, true) && in_array($requestMethod, ['GET', 'HEAD', 'OPTIONS'], true)) {
@@ -27,6 +27,7 @@ $dataDir = __DIR__ . '/data';
 $dataFile = $dataDir . '/reports.json';
 $membersFile = $dataDir . '/community-members.json';
 $cronLogFile = $dataDir . '/cron-sync.log';
+$syncCursorFile = $dataDir . '/sync-cursors.json';
 $configFile = __DIR__ . '/config.php';
 $sourcesFile = __DIR__ . '/sources.json';
 $adminPin = getenv('AYUDAVE_ADMIN_PIN') ?: '';
@@ -218,6 +219,24 @@ function write_cron_status(string $cronLogFile, int $status, bool $ok, array $pa
     $summary = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $line = sprintf("[%s] status=%d ok=%s %s\n", date(DATE_ATOM), $status, $ok ? 'true' : 'false', clean_text($summary ?: '', 1200));
     @file_put_contents($cronLogFile, $line, FILE_APPEND | LOCK_EX);
+}
+
+function read_sync_cursors(string $cursorFile): array
+{
+    if (!is_file($cursorFile)) {
+        return [];
+    }
+    $decoded = json_decode((string) file_get_contents($cursorFile), true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function write_sync_cursors(string $cursorFile, array $cursors): void
+{
+    $dir = dirname($cursorFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    @file_put_contents($cursorFile, json_encode($cursors, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT), LOCK_EX);
 }
 
 function file_sync_summary(string $dataFile): array
@@ -500,6 +519,14 @@ function parse_export_since(mixed $value): ?array
         'mysql' => date('Y-m-d H:i:s', $timestamp),
         'timestamp' => $timestamp,
     ];
+}
+
+function query_int(mixed $value, int $default, int $min, int $max): int
+{
+    if ($value === null || $value === '' || !is_numeric($value)) {
+        return $default;
+    }
+    return max($min, min($max, (int) $value));
 }
 
 function payload_changed_at(array $payload): int
@@ -1261,15 +1288,40 @@ function format_missing_person(array $row): array
     ];
 }
 
-function db_read_missing_people(PDO $pdo, int $limit = 300, ?array $since = null): array
+function missing_people_where(?array $since = null, array $filters = []): array
 {
-    $limit = max(1, min(5000, $limit));
-    $where = '';
+    $where = [];
     $params = [];
     if ($since) {
-        $where = 'WHERE COALESCE(updated_at, created_at, synced_at) >= :since';
+        $where[] = 'COALESCE(updated_at, created_at, synced_at) >= :since';
         $params[':since'] = $since['mysql'];
     }
+    $status = clean_text($filters['status'] ?? '', 40);
+    if (in_array($status, ['Buscando', 'Localizado', 'Encontrado'], true)) {
+        $where[] = 'status = :person_status';
+        $params[':person_status'] = $status;
+    }
+    $query = clean_text($filters['q'] ?? '', 80);
+    if ($query !== '') {
+        $where[] = '(display_name LIKE :people_query OR city LIKE :people_query OR zone LIKE :people_query OR last_seen LIKE :people_query OR source LIKE :people_query)';
+        $params[':people_query'] = '%' . $query . '%';
+    }
+    return [$where ? 'WHERE ' . implode(' AND ', $where) : '', $params];
+}
+
+function db_count_missing_people(PDO $pdo, ?array $since = null, array $filters = []): int
+{
+    [$where, $params] = missing_people_where($since, $filters);
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM missing_people {$where}");
+    $stmt->execute($params);
+    return (int) $stmt->fetchColumn();
+}
+
+function db_read_missing_people(PDO $pdo, int $limit = 300, ?array $since = null, int $offset = 0, array $filters = []): array
+{
+    $limit = max(1, min(5000, $limit));
+    $offset = max(0, min(250000, $offset));
+    [$where, $params] = missing_people_where($since, $filters);
     $stmt = $pdo->prepare(
         "SELECT id, display_name, status, age, gender, city, zone, last_seen, description, photo_url, is_minor, verified, source, source_url, external_id, created_at, updated_at, synced_at
          FROM missing_people
@@ -1277,7 +1329,7 @@ function db_read_missing_people(PDO $pdo, int $limit = 300, ?array $since = null
          ORDER BY
             CASE WHEN status = 'Buscando' THEN 0 WHEN status = 'Localizado' THEN 1 ELSE 2 END,
             COALESCE(updated_at, created_at, synced_at) DESC
-         LIMIT {$limit}"
+         LIMIT {$limit} OFFSET {$offset}"
     );
     $stmt->execute($params);
     return array_map('format_missing_person', $stmt->fetchAll());
@@ -1304,7 +1356,7 @@ function db_missing_people_counts(PDO $pdo): array
     ];
 }
 
-function db_read_public_export(PDO $pdo, int $maxReports, int $maxHelpPoints, int $maxMissingPeople = 500, ?array $since = null): array
+function db_read_public_export(PDO $pdo, int $maxReports, int $maxHelpPoints, int $maxMissingPeople = 500, ?array $since = null, int $missingOffset = 0, array $missingFilters = []): array
 {
     $reportsStmt = $pdo->prepare(
         "SELECT id, type, area, city, priority, status, detail, lat, lng, source, source_url, external_id, privacy_review, created_at, updated_at, synced_at
@@ -1341,12 +1393,14 @@ function db_read_public_export(PDO $pdo, int $maxReports, int $maxHelpPoints, in
     }
     $helpStmt->bindValue(':limit', max(1, min($maxHelpPoints, 3000)), PDO::PARAM_INT);
     $helpStmt->execute();
-    $missingPeople = db_read_missing_people($pdo, $maxMissingPeople, $since);
+    $missingPeople = db_read_missing_people($pdo, $maxMissingPeople, $since, $missingOffset, $missingFilters);
+    $missingTotal = db_count_missing_people($pdo, $since, $missingFilters);
 
     return [
         'reports' => array_map('format_public_report', $reportsStmt->fetchAll()),
         'helpPoints' => array_map('format_public_help_point', $helpStmt->fetchAll()),
         'missingPeople' => $missingPeople,
+        'missingPeopleTotal' => $missingTotal,
     ];
 }
 
@@ -1356,7 +1410,7 @@ function file_read_public_export(string $dataFile, int $maxReports, ?array $sinc
     if ($since !== null) {
         $reports = array_values(array_filter($reports, static fn (array $report): bool => payload_changed_at($report) >= $since['timestamp']));
     }
-    return ['reports' => $reports, 'helpPoints' => [], 'missingPeople' => []];
+    return ['reports' => $reports, 'helpPoints' => [], 'missingPeople' => [], 'missingPeopleTotal' => 0];
 }
 
 function db_insert_report(PDO $pdo, array $report): array
@@ -1931,12 +1985,14 @@ function normalize_acopios_refugios(): array
     return $rows;
 }
 
-function normalize_venezuela_reporta_personas(): array
+function normalize_venezuela_reporta_personas(int $startOffset = 0, int $maxRows = 5000): array
 {
     $baseUrl = 'https://venezuelareporta.org/api/v1/personas';
     $rows = [];
     $limit = 100;
-    for ($offset = 0; $offset < 5000; $offset += $limit) {
+    $startOffset = max(0, $startOffset);
+    $maxRows = max(100, min(5000, $maxRows));
+    for ($offset = $startOffset; $offset < $startOffset + $maxRows; $offset += $limit) {
         $payload = http_get_json($baseUrl . '?limit=' . $limit . '&offset=' . $offset);
         $items = is_array($payload['personas'] ?? null) ? $payload['personas'] : [];
         if (!$items) {
@@ -1996,12 +2052,14 @@ function normalize_venezuela_reporta_personas(): array
     return $rows;
 }
 
-function normalize_venezuela_reporta_ingresos(): array
+function normalize_venezuela_reporta_ingresos(int $startOffset = 0, int $maxRows = 5000): array
 {
     $baseUrl = 'https://venezuelareporta.org/api/v1/ingresos';
     $rows = [];
     $limit = 100;
-    for ($offset = 0; $offset < 5000; $offset += $limit) {
+    $startOffset = max(0, $startOffset);
+    $maxRows = max(100, min(5000, $maxRows));
+    for ($offset = $startOffset; $offset < $startOffset + $maxRows; $offset += $limit) {
         $payload = http_get_json($baseUrl . '?limit=' . $limit . '&offset=' . $offset);
         $items = is_array($payload['personas'] ?? null) ? $payload['personas'] : [];
         if (!$items) {
@@ -2051,12 +2109,14 @@ function normalize_venezuela_reporta_ingresos(): array
     return $rows;
 }
 
-function normalize_localizados_venezuela(): array
+function normalize_localizados_venezuela(int $startPage = 1, int $maxPages = 50): array
 {
     $baseUrl = 'https://localizadosvenezuela.com/api/v1/localizados';
     $rows = [];
     $limit = 100;
-    for ($page = 1; $page <= 50; $page++) {
+    $startPage = max(1, $startPage);
+    $maxPages = max(1, min(50, $maxPages));
+    for ($page = $startPage; $page < $startPage + $maxPages; $page++) {
         $payload = http_get_json($baseUrl . '?limit=' . $limit . '&page=' . $page);
         $items = is_array($payload['data'] ?? null) ? $payload['data'] : [];
         if (!$items) {
@@ -2226,16 +2286,16 @@ function db_upsert_external_reports(PDO $pdo, array $rows): array
     return $stats;
 }
 
-function sync_external_source(PDO $pdo, string $source, array $externalApiKeys): array
+function sync_external_source(PDO $pdo, string $source, array $externalApiKeys, array $options = []): array
 {
     if ($source === 'venezuela_reporta_personas') {
-        return db_upsert_missing_people($pdo, normalize_venezuela_reporta_personas());
+        return db_upsert_missing_people($pdo, normalize_venezuela_reporta_personas((int) ($options['offset'] ?? 0), (int) ($options['maxRows'] ?? 5000)));
     }
     if ($source === 'venezuela_reporta_ingresos') {
-        return db_upsert_missing_people($pdo, normalize_venezuela_reporta_ingresos());
+        return db_upsert_missing_people($pdo, normalize_venezuela_reporta_ingresos((int) ($options['offset'] ?? 0), (int) ($options['maxRows'] ?? 5000)));
     }
     if ($source === 'localizados_venezuela') {
-        return db_upsert_missing_people($pdo, normalize_localizados_venezuela());
+        return db_upsert_missing_people($pdo, normalize_localizados_venezuela((int) ($options['page'] ?? 1), (int) ($options['maxPages'] ?? 50)));
     }
 
     $rows = match ($source) {
@@ -2249,7 +2309,7 @@ function sync_external_source(PDO $pdo, string $source, array $externalApiKeys):
     return db_upsert_external_reports($pdo, $rows);
 }
 
-function sync_external_sources(PDO $pdo, array $sources, array $externalApiKeys): array
+function sync_external_sources(PDO $pdo, array $sources, array $externalApiKeys, ?string $syncCursorFile = null, bool $useCursor = false): array
 {
     $lockDir = __DIR__ . '/data';
     if (!is_dir($lockDir)) {
@@ -2264,16 +2324,39 @@ function sync_external_sources(PDO $pdo, array $sources, array $externalApiKeys)
     }
 
     $results = [];
+    $cursors = ($useCursor && $syncCursorFile) ? read_sync_cursors($syncCursorFile) : [];
     try {
         foreach ($sources as $source) {
             $source = clean_text($source, 60);
             if ($source === '') continue;
             try {
-                $results[$source] = sync_external_source($pdo, $source, $externalApiKeys);
+                $options = [];
+                if ($useCursor && in_array($source, ['venezuela_reporta_personas', 'venezuela_reporta_ingresos'], true)) {
+                    $options = ['offset' => (int) ($cursors[$source]['offset'] ?? 0), 'maxRows' => 1000];
+                } elseif ($useCursor && $source === 'localizados_venezuela') {
+                    $options = ['page' => (int) ($cursors[$source]['page'] ?? 1), 'maxPages' => 10];
+                }
+                $results[$source] = sync_external_source($pdo, $source, $externalApiKeys, $options);
+                if ($useCursor && in_array($source, ['venezuela_reporta_personas', 'venezuela_reporta_ingresos'], true)) {
+                    $currentOffset = (int) ($options['offset'] ?? 0);
+                    $fetched = (int) ($results[$source]['fetched'] ?? 0);
+                    $nextOffset = $fetched > 0 ? $currentOffset + $fetched : 0;
+                    $cursors[$source] = ['offset' => $nextOffset, 'updatedAt' => date(DATE_ATOM)];
+                    $results[$source]['cursor'] = ['offset' => $currentOffset, 'nextOffset' => $nextOffset];
+                } elseif ($useCursor && $source === 'localizados_venezuela') {
+                    $currentPage = (int) ($options['page'] ?? 1);
+                    $fetched = (int) ($results[$source]['fetched'] ?? 0);
+                    $nextPage = $fetched > 0 ? $currentPage + (int) ceil($fetched / 100) : 1;
+                    $cursors[$source] = ['page' => $nextPage, 'updatedAt' => date(DATE_ATOM)];
+                    $results[$source]['cursor'] = ['page' => $currentPage, 'nextPage' => $nextPage];
+                }
             } catch (Throwable $error) {
                 error_log('AyudaVE source sync failed for ' . $source . ': ' . $error->getMessage());
                 $results[$source] = ['ok' => false, 'error' => 'Fuente no disponible temporalmente.'];
             }
+        }
+        if ($useCursor && $syncCursorFile) {
+            write_sync_cursors($syncCursorFile, $cursors);
         }
         return $results;
     } finally {
@@ -2328,16 +2411,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'sync_status') {
         respond(200, public_sync_status($pdo, $dataFile, $cronLogFile));
     }
+    if ($action === 'people') {
+        if (!$pdo) {
+            respond(200, ['ok' => true, 'people' => [], 'pagination' => ['limit' => 0, 'offset' => 0, 'total' => 0, 'hasMore' => false], 'counts' => ['total' => 0, 'searching' => 0, 'localized' => 0, 'found' => 0]]);
+        }
+        $limit = query_int($_GET['limit'] ?? null, 300, 1, 500);
+        $offset = query_int($_GET['offset'] ?? null, 0, 0, 250000);
+        $filters = [
+            'status' => clean_text($_GET['status'] ?? '', 40),
+            'q' => clean_text($_GET['q'] ?? '', 80),
+        ];
+        $people = db_read_missing_people($pdo, $limit, null, $offset, $filters);
+        $total = db_count_missing_people($pdo, null, $filters);
+        respond(200, [
+            'ok' => true,
+            'generatedAt' => date(DATE_ATOM),
+            'people' => $people,
+            'pagination' => [
+                'limit' => $limit,
+                'offset' => $offset,
+                'total' => $total,
+                'nextOffset' => $offset + count($people),
+                'hasMore' => $offset + count($people) < $total,
+            ],
+            'counts' => db_missing_people_counts($pdo),
+        ]);
+    }
     if ($action === 'export_public') {
         if (empty($publicExportConfig['enabled'])) {
             respond(404, ['ok' => false, 'error' => 'Exportacion no disponible.']);
         }
         $maxReports = (int) ($publicExportConfig['max_reports'] ?? 500);
         $maxHelpPoints = (int) ($publicExportConfig['max_help_points'] ?? 1000);
-        $maxMissingPeople = (int) ($publicExportConfig['max_missing_people'] ?? 500);
+        $maxMissingPeople = query_int($_GET['missing_limit'] ?? $_GET['people_limit'] ?? null, (int) ($publicExportConfig['max_missing_people'] ?? 500), 1, 5000);
+        $missingOffset = query_int($_GET['missing_offset'] ?? $_GET['people_offset'] ?? null, 0, 0, 250000);
+        $missingFilters = [
+            'status' => clean_text($_GET['people_status'] ?? $_GET['status'] ?? '', 40),
+            'q' => clean_text($_GET['people_q'] ?? $_GET['q'] ?? '', 80),
+        ];
         $since = parse_export_since($_GET['since'] ?? $_GET['updated_since'] ?? '');
         $export = $pdo
-            ? db_read_public_export($pdo, $maxReports, $maxHelpPoints, $maxMissingPeople, $since)
+            ? db_read_public_export($pdo, $maxReports, $maxHelpPoints, $maxMissingPeople, $since, $missingOffset, $missingFilters)
             : file_read_public_export($dataFile, $maxReports, $since);
         $policy = public_data_policy();
         respond(200, [
@@ -2353,6 +2467,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'reports' => count($export['reports']),
                 'helpPoints' => count($export['helpPoints']),
                 'missingPeople' => count($export['missingPeople']),
+                'missingPeopleTotal' => (int) ($export['missingPeopleTotal'] ?? count($export['missingPeople'])),
+            ],
+            'pagination' => [
+                'missingPeople' => [
+                    'limit' => $maxMissingPeople,
+                    'offset' => $missingOffset,
+                    'total' => (int) ($export['missingPeopleTotal'] ?? count($export['missingPeople'])),
+                    'nextOffset' => $missingOffset + count($export['missingPeople']),
+                    'hasMore' => $missingOffset + count($export['missingPeople']) < (int) ($export['missingPeopleTotal'] ?? count($export['missingPeople'])),
+                ],
             ],
             'reports' => $export['reports'],
             'helpPoints' => $export['helpPoints'],
@@ -2407,7 +2531,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             respond(503, $payload);
         }
         $sources = isset($_GET['sources']) ? explode(',', clean_text($_GET['sources'], 240)) : $syncSources;
-        $results = sync_external_sources($pdo, $sources, $externalApiKeys);
+        $useCursor = !isset($_GET['cursor']) || clean_text($_GET['cursor'], 12) !== '0';
+        $results = sync_external_sources($pdo, $sources, $externalApiKeys, $syncCursorFile, $useCursor);
         $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
         $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
         write_cron_status($cronLogFile, 200, $ok, $payload);
@@ -2419,7 +2544,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $reports = $pdo ? db_read_reports($pdo) : read_reports($dataFile);
     $helpPoints = $pdo ? db_read_help_points($pdo) : [];
     $missingPeople = $pdo ? db_read_missing_people($pdo, 300) : [];
-    respond(200, ['ok' => true, 'reports' => array_slice($reports, 0, 200), 'helpPoints' => $helpPoints, 'missingPeople' => $missingPeople]);
+    $missingPeopleCounts = $pdo ? db_missing_people_counts($pdo) : ['total' => 0, 'searching' => 0, 'localized' => 0, 'found' => 0];
+    respond(200, ['ok' => true, 'reports' => array_slice($reports, 0, 200), 'helpPoints' => $helpPoints, 'missingPeople' => $missingPeople, 'missingPeopleCounts' => $missingPeopleCounts]);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -2561,7 +2687,8 @@ if ($action === 'cron_sync') {
         respond(503, $payload);
     }
     $sources = isset($input['sources']) && is_array($input['sources']) ? $input['sources'] : $syncSources;
-    $results = sync_external_sources($pdo, $sources, $externalApiKeys);
+    $useCursor = !array_key_exists('cursor', $input) || !empty($input['cursor']);
+    $results = sync_external_sources($pdo, $sources, $externalApiKeys, $syncCursorFile, $useCursor);
     $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
     $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
     write_cron_status($cronLogFile, 200, $ok, $payload);

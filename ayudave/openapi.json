@@ -42,7 +42,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["metadata", "sync_status", "export_public", "export_csv"]
+              "enum": ["metadata", "sync_status", "export_public", "export_csv", "people"]
             },
             "examples": {
               "metadata": { "value": "metadata" },
@@ -50,6 +50,41 @@
               "json": { "value": "export_public" },
               "csv": { "value": "export_csv" }
             }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 500 },
+            "description": "For action=people, number of person records to return."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0 },
+            "description": "For action=people, zero-based person offset."
+          },
+          {
+            "name": "missing_limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 5000 },
+            "description": "For action=export_public, number of missingPeople records to include. Alias: people_limit."
+          },
+          {
+            "name": "missing_offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0 },
+            "description": "For action=export_public, zero-based missingPeople offset. Alias: people_offset."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["Buscando", "Localizado", "Encontrado"] },
+            "description": "For action=people, or action=export_public when filtering people."
           },
           {
             "name": "dataset",
@@ -82,7 +117,8 @@
                   "oneOf": [
                     { "$ref": "#/components/schemas/MetadataResponse" },
                     { "$ref": "#/components/schemas/SyncStatusResponse" },
-                    { "$ref": "#/components/schemas/PublicExportResponse" }
+                    { "$ref": "#/components/schemas/PublicExportResponse" },
+                    { "$ref": "#/components/schemas/PeopleResponse" }
                   ]
                 }
               },
@@ -301,7 +337,14 @@
             "properties": {
               "reports": { "type": "integer", "minimum": 0 },
               "helpPoints": { "type": "integer", "minimum": 0 },
-              "missingPeople": { "type": "integer", "minimum": 0 }
+              "missingPeople": { "type": "integer", "minimum": 0 },
+              "missingPeopleTotal": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "missingPeople": { "$ref": "#/components/schemas/Pagination" }
             }
           },
           "reports": {
@@ -316,6 +359,40 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/MissingPerson" }
           }
+        }
+      },
+      "PeopleResponse": {
+        "type": "object",
+        "required": ["ok", "people", "pagination", "counts"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "generatedAt": { "type": "string", "format": "date-time" },
+          "people": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MissingPerson" }
+          },
+          "pagination": { "$ref": "#/components/schemas/Pagination" },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "integer", "minimum": 0 },
+              "searching": { "type": "integer", "minimum": 0 },
+              "localized": { "type": "integer", "minimum": 0 },
+              "found": { "type": "integer", "minimum": 0 },
+              "lastSyncedAt": { "type": ["string", "null"] }
+            }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["limit", "offset", "total", "nextOffset", "hasMore"],
+        "properties": {
+          "limit": { "type": "integer", "minimum": 1 },
+          "offset": { "type": "integer", "minimum": 0 },
+          "total": { "type": "integer", "minimum": 0 },
+          "nextOffset": { "type": "integer", "minimum": 0 },
+          "hasMore": { "type": "boolean" }
         }
       },
       "License": {

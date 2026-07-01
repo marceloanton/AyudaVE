@@ -11,11 +11,15 @@ return [
         'venezuela_reporta_sitios',
         'refugios_venezuela',
         'acopios_refugios',
+        'venezuela_reporta_personas',
+        'venezuela_reporta_ingresos',
+        'localizados_venezuela',
     ],
     'public_export' => [
         'enabled' => true,
         'max_reports' => 500,
         'max_help_points' => 1000,
+        'max_missing_people' => 5000,
     ],
     'external_api_keys' => [
         // Clave publishable/public anon de la API de Refugios Venezuela.

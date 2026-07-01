@@ -11,10 +11,11 @@ function normalizeText(value) {
   return String(value || "").toLowerCase();
 }
 
-export function PeopleView({ people = [], t }) {
-  const searching = people.filter((person) => person.status === "Buscando");
-  const localized = people.filter((person) => person.status === "Localizado");
-  const found = people.filter((person) => person.status === "Encontrado");
+export function PeopleView({ counts = null, hasMore = false, isLoadingMore = false, onLoadMore, people = [], total = 0, t }) {
+  const searching = counts?.searching ?? people.filter((person) => person.status === "Buscando").length;
+  const localized = counts?.localized ?? people.filter((person) => person.status === "Localizado").length;
+  const found = counts?.found ?? people.filter((person) => person.status === "Encontrado").length;
+  const syncedTotal = total || counts?.total || people.length;
   const verified = people.filter((person) => person.verified);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("todos");
@@ -37,19 +38,19 @@ export function PeopleView({ people = [], t }) {
       </header>
       <div className="people-summary" aria-label={t.people.summary}>
         <article>
-          <strong>{people.length}</strong>
+          <strong>{syncedTotal}</strong>
           <span>{t.people.total}</span>
         </article>
         <article className="is-alert">
-          <strong>{searching.length}</strong>
+          <strong>{searching}</strong>
           <span>{t.people.searching}</span>
         </article>
         <article className="is-ok">
-          <strong>{found.length}</strong>
+          <strong>{found}</strong>
           <span>{t.people.found}</span>
         </article>
         <article className="is-info">
-          <strong>{localized.length}</strong>
+          <strong>{localized}</strong>
           <span>{t.people.localized}</span>
         </article>
         <article>
@@ -79,6 +80,7 @@ export function PeopleView({ people = [], t }) {
         </div>
       </div>
       <p className="people-privacy">{t.people.privacy}</p>
+      <p className="people-loaded">{t.people.showingLoaded.replace("{loaded}", String(people.length)).replace("{total}", String(syncedTotal))}</p>
       <div className="people-list">
         {filteredPeople.length === 0 ? (
           <article className="empty-state">
@@ -130,6 +132,11 @@ export function PeopleView({ people = [], t }) {
           </article>
         ))}
       </div>
+      {hasMore ? (
+        <button className="people-load-more" disabled={isLoadingMore} onClick={onLoadMore} type="button">
+          {isLoadingMore ? t.people.loadingMore : t.people.loadMore}
+        </button>
+      ) : null}
     </section>
   );
 }

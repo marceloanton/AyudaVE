@@ -3,6 +3,8 @@
   "updated": "2026-07-01",
   "public_export": "https://example.org/api.php?action=export_public",
   "public_export_incremental_example": "https://example.org/api.php?action=export_public&since=2026-06-28T00:00:00Z",
+  "public_people": "https://example.org/api.php?action=people&limit=300&offset=0",
+  "public_people_export_page": "https://example.org/api.php?action=export_public&missing_limit=5000&missing_offset=0",
   "metadata": "https://example.org/api.php?action=metadata",
   "csv_reports": "https://example.org/api.php?action=export_csv&dataset=reports",
   "csv_help_points": "https://example.org/api.php?action=export_csv&dataset=helpPoints",

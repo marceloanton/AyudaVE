@@ -22,7 +22,28 @@ export async function fetchServerPayload() {
     reports: payload.reports,
     helpPoints: Array.isArray(payload.helpPoints) ? payload.helpPoints : [],
     missingPeople: Array.isArray(payload.missingPeople) ? payload.missingPeople : [],
+    missingPeopleCounts: payload.missingPeopleCounts || null,
   };
+}
+
+export async function fetchMissingPeoplePage({ limit = 300, offset = 0, status = "", query = "" } = {}) {
+  const params = new URLSearchParams({
+    action: "people",
+    limit: String(limit),
+    offset: String(offset),
+    t: String(Date.now()),
+  });
+  if (status) params.set("status", status);
+  if (query) params.set("q", query);
+  const response = await fetch(`${apiUrl}?${params.toString()}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.ok || !Array.isArray(payload.people)) {
+    throw new Error(payload.error || "No se pudo cargar personas.");
+  }
+  return payload;
 }
 
 export async function fetchHealth() {

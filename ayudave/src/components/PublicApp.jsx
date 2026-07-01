@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { helpPoints, seedReports } from "../data/catalog";
-import { createServerReport, fetchServerPayload, fetchSyncStatus, validateHelpPoint } from "../lib/api";
+import { createServerReport, fetchMissingPeoplePage, fetchServerPayload, fetchSyncStatus, validateHelpPoint } from "../lib/api";
 import { getTranslator } from "../lib/i18n";
 import {
   loadLocalReports,
@@ -29,6 +29,7 @@ import { UtilityLinks } from "./UtilityLinks";
 
 const views = ["mapa", "reportar", "directorio", "personas", "alertas", "ayuda"];
 const placeValidationsKey = "ayudave-place-validations";
+const missingPeoplePageSize = 300;
 
 function normalizeHashView() {
   const hashView = window.location.hash.replace("#", "");
@@ -86,6 +87,9 @@ export function PublicApp() {
   const [reports, setReports] = useState(() => baselineReports());
   const [directoryPoints, setDirectoryPoints] = useState(() => withLocalPlaceValidations(helpPoints));
   const [missingPeople, setMissingPeople] = useState([]);
+  const [missingPeopleCounts, setMissingPeopleCounts] = useState(null);
+  const [missingPeoplePage, setMissingPeoplePage] = useState({ hasMore: false, nextOffset: 0, total: 0 });
+  const [isLoadingMorePeople, setIsLoadingMorePeople] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [serverSyncAvailable, setServerSyncAvailable] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null);
@@ -128,11 +132,17 @@ export function PublicApp() {
         if (cancelled) return;
 
         if (payloadResult.status === "fulfilled") {
-          const { reports: serverReports, helpPoints: serverHelpPoints, missingPeople: serverMissingPeople } = payloadResult.value;
+          const { reports: serverReports, helpPoints: serverHelpPoints, missingPeople: serverMissingPeople, missingPeopleCounts: serverPeopleCounts } = payloadResult.value;
           const trustedReports = serverReports.length > 0 ? serverReports : seedReports;
           setReports((current) => mergeReports(trustedReports, current.filter((item) => item.id.startsWith("local-"))));
           setDirectoryPoints(withLocalPlaceValidations(serverHelpPoints.length > 0 ? serverHelpPoints : helpPoints));
           setMissingPeople(serverMissingPeople);
+          setMissingPeopleCounts(serverPeopleCounts);
+          setMissingPeoplePage({
+            hasMore: !!serverPeopleCounts && serverMissingPeople.length < serverPeopleCounts.total,
+            nextOffset: serverMissingPeople.length,
+            total: serverPeopleCounts?.total || serverMissingPeople.length,
+          });
           setServerSyncAvailable(true);
         } else {
           setServerSyncAvailable(false);
@@ -152,6 +162,31 @@ export function PublicApp() {
       cancelled = true;
     };
   }, []);
+
+  const handleLoadMorePeople = useCallback(() => {
+    if (isLoadingMorePeople || !missingPeoplePage.hasMore) return;
+    setIsLoadingMorePeople(true);
+    fetchMissingPeoplePage({ limit: missingPeoplePageSize, offset: missingPeoplePage.nextOffset })
+      .then((payload) => {
+        setMissingPeople((current) => {
+          const byId = new Map(current.map((person) => [person.id, person]));
+          for (const person of payload.people) {
+            byId.set(person.id, person);
+          }
+          return Array.from(byId.values());
+        });
+        setMissingPeopleCounts(payload.counts || null);
+        setMissingPeoplePage({
+          hasMore: !!payload.pagination?.hasMore,
+          nextOffset: payload.pagination?.nextOffset || missingPeoplePage.nextOffset + payload.people.length,
+          total: payload.pagination?.total || missingPeoplePage.total,
+        });
+      })
+      .catch(() => {
+        setMissingPeoplePage((current) => ({ ...current, hasMore: false }));
+      })
+      .finally(() => setIsLoadingMorePeople(false));
+  }, [isLoadingMorePeople, missingPeoplePage.hasMore, missingPeoplePage.nextOffset, missingPeoplePage.total]);
 
   useEffect(() => {
     const localReports = reports.filter((report) => report.id.startsWith("local-"));
@@ -339,7 +374,17 @@ export function PublicApp() {
             </>
           ) : null}
           {activeView === "directorio" ? <DirectoryView helpPoints={directoryPoints} onValidatePoint={handleValidateHelpPoint} t={t} /> : null}
-          {activeView === "personas" ? <PeopleView people={missingPeople} t={t} /> : null}
+          {activeView === "personas" ? (
+            <PeopleView
+              counts={missingPeopleCounts}
+              hasMore={missingPeoplePage.hasMore}
+              isLoadingMore={isLoadingMorePeople}
+              onLoadMore={handleLoadMorePeople}
+              people={missingPeople}
+              total={missingPeoplePage.total}
+              t={t}
+            />
+          ) : null}
           {activeView === "alertas" ? (
             <AlertsDrawer
               open
