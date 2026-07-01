@@ -1743,6 +1743,40 @@
     @apply m-0 max-w-[860px] text-sm leading-normal text-ayuda-muted;
   }
 
+  .people-external-metrics {
+    @apply grid items-center gap-3 rounded border border-[#f0d28b] bg-[#fff8e6] p-3;
+    grid-template-columns: minmax(220px, 1.2fr) minmax(280px, 2fr) auto;
+  }
+
+  .people-external-metrics strong {
+    @apply block text-sm text-ayuda-teal-dark;
+  }
+
+  .people-external-metrics p {
+    @apply m-0 mt-1 text-xs leading-normal text-ayuda-muted;
+  }
+
+  .people-external-metrics dl {
+    @apply m-0 grid gap-2;
+    grid-template-columns: repeat(3, minmax(90px, 1fr));
+  }
+
+  .people-external-metrics div {
+    @apply min-w-0;
+  }
+
+  .people-external-metrics dt {
+    @apply text-[10px] font-black uppercase text-ayuda-muted;
+  }
+
+  .people-external-metrics dd {
+    @apply m-0 text-xl font-black leading-tight text-ayuda-teal-dark;
+  }
+
+  .people-external-metrics a {
+    @apply inline-flex min-h-10 items-center justify-center rounded-[5px] border border-ayuda-teal bg-white px-3 text-xs font-black text-ayuda-teal no-underline;
+  }
+
   .people-loaded {
     @apply m-0 text-xs font-black uppercase text-ayuda-muted;
   }
@@ -2769,6 +2803,14 @@
 
   .people-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .people-external-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .people-external-metrics dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .people-tools {

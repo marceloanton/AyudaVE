@@ -5,6 +5,7 @@
   "public_export_incremental_example": "https://example.org/api.php?action=export_public&since=2026-06-28T00:00:00Z",
   "public_people": "https://example.org/api.php?action=people&limit=300&offset=0",
   "public_people_export_page": "https://example.org/api.php?action=export_public&missing_limit=5000&missing_offset=0",
+  "external_people_metrics": "https://example.org/api.php?action=external_metrics",
   "metadata": "https://example.org/api.php?action=metadata",
   "csv_reports": "https://example.org/api.php?action=export_csv&dataset=reports",
   "csv_help_points": "https://example.org/api.php?action=export_csv&dataset=helpPoints",
@@ -191,7 +192,7 @@
       "url": "https://desaparecidosterremotovenezuela.com/",
       "category": "people",
       "sync": "manual_reference",
-      "privacy": "Personas desaparecidas/localizadas. No mezclar estados encontrado/localizado sin validacion independiente."
+      "privacy": "Personas desaparecidas/localizadas. AyudaVE solo muestra metricas agregadas desde esta fuente; no importa fichas, fotos, documentos ni contactos sin validacion independiente."
     },
     {
       "id": "sos_venezuela_2026",

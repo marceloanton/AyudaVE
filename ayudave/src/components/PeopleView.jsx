@@ -11,12 +11,17 @@ function normalizeText(value) {
   return String(value || "").toLowerCase();
 }
 
-export function PeopleView({ counts = null, hasMore = false, isLoadingMore = false, onLoadMore, people = [], total = 0, t }) {
+function formatNumber(value) {
+  return new Intl.NumberFormat("es-VE").format(Number(value || 0));
+}
+
+export function PeopleView({ counts = null, externalMetrics = null, hasMore = false, isLoadingMore = false, onLoadMore, people = [], total = 0, t }) {
   const searching = counts?.searching ?? people.filter((person) => person.status === "Buscando").length;
   const localized = counts?.localized ?? people.filter((person) => person.status === "Localizado").length;
   const found = counts?.found ?? people.filter((person) => person.status === "Encontrado").length;
   const syncedTotal = total || counts?.total || people.length;
   const verified = people.filter((person) => person.verified);
+  const external = externalMetrics?.metrics || null;
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("todos");
   const filteredPeople = people.filter((person) => {
@@ -80,6 +85,31 @@ export function PeopleView({ counts = null, hasMore = false, isLoadingMore = fal
         </div>
       </div>
       <p className="people-privacy">{t.people.privacy}</p>
+      {external ? (
+        <aside className="people-external-metrics" aria-label={t.people.externalTitle}>
+          <div>
+            <strong>{t.people.externalTitle}</strong>
+            <p>{t.people.externalBody}</p>
+          </div>
+          <dl>
+            <div>
+              <dt>{t.people.externalTotal}</dt>
+              <dd>{formatNumber(external.totalPeople)}</dd>
+            </div>
+            <div>
+              <dt>{t.people.externalWithoutContact}</dt>
+              <dd>{formatNumber(external.withoutContact)}</dd>
+            </div>
+            <div>
+              <dt>{t.people.externalLocalized}</dt>
+              <dd>{formatNumber(external.localized)}</dd>
+            </div>
+          </dl>
+          <a href={externalMetrics.source?.url || "https://desaparecidosterremotovenezuela.com/"} rel="noreferrer" target="_blank">
+            {t.people.externalOpen}
+          </a>
+        </aside>
+      ) : null}
       <p className="people-loaded">{t.people.showingLoaded.replace("{loaded}", String(people.length)).replace("{total}", String(syncedTotal))}</p>
       <div className="people-list">
         {filteredPeople.length === 0 ? (

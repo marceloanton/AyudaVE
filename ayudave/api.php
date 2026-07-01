@@ -5,7 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
 
-$publicReadActions = ['metadata', 'sync_status', 'export_public', 'export_csv', 'people'];
+$publicReadActions = ['metadata', 'sync_status', 'export_public', 'export_csv', 'people', 'external_metrics'];
 $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 $requestAction = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['action'] ?? ''));
 if (in_array($requestAction, $publicReadActions, true) && in_array($requestMethod, ['GET', 'HEAD', 'OPTIONS'], true)) {
@@ -152,6 +152,7 @@ function public_metadata(string $sourcesFile, array $publicExportConfig): array
             'csvHelpPoints' => $baseUrl . '/api.php?action=export_csv&dataset=helpPoints',
             'csvMissingPeople' => $baseUrl . '/api.php?action=export_csv&dataset=missingPeople',
             'syncStatus' => $baseUrl . '/api.php?action=sync_status',
+            'externalMetrics' => $baseUrl . '/api.php?action=external_metrics',
             'schema' => $baseUrl . '/ayudave-public-export.schema.json',
             'openapi' => $baseUrl . '/openapi.json',
             'enabled' => !empty($publicExportConfig['enabled']),
@@ -338,6 +339,58 @@ function public_sync_status(?PDO $pdo, string $dataFile, string $cronLogFile): a
         'lastSyncedAt' => $health['lastSyncedAt'] ?? null,
         'cron' => read_cron_status($cronLogFile),
         'sources' => $health['sources'] ?? [],
+    ];
+}
+
+function normalize_external_people_metrics(array $payload): array
+{
+    $geo = isset($payload['geo']) && is_array($payload['geo']) ? $payload['geo'] : $payload;
+    $children = isset($payload['children']) && is_array($payload['children']) ? $payload['children'] : [];
+    $topRegions = [];
+    foreach (array_slice($children, 0, 5) as $child) {
+        if (!is_array($child)) continue;
+        $metrics = isset($child['metrics']) && is_array($child['metrics']) ? $child['metrics'] : [];
+        $topRegions[] = [
+            'name' => clean_text($child['nombre'] ?? $child['name'] ?? 'Sin nombre', 80),
+            'total' => (int) ($metrics['totalPersonas'] ?? $metrics['personasUnicas'] ?? 0),
+            'withoutContact' => (int) ($metrics['sinContacto'] ?? 0),
+            'localized' => (int) ($metrics['localizados'] ?? $metrics['localizado'] ?? 0),
+        ];
+    }
+
+    return [
+        'totalPeople' => (int) ($geo['totalPersonas'] ?? $geo['personasUnicas'] ?? $geo['total'] ?? 0),
+        'withoutContact' => (int) ($geo['sinContacto'] ?? 0),
+        'localized' => (int) ($geo['localizados'] ?? $geo['localizado'] ?? 0),
+        'localizedHospital' => (int) ($geo['localizadosHospital'] ?? 0),
+        'localizedCenter' => (int) ($geo['localizadosCentro'] ?? 0),
+        'reportedConcerns' => (int) ($geo['denunciadas'] ?? 0),
+        'topRegions' => $topRegions,
+    ];
+}
+
+function public_external_metrics(): array
+{
+    $sourceUrl = 'https://desaparecidosterremotovenezuela.com/';
+    $apiUrl = 'https://desaparecidos-terremoto-api.theempire.tech/api/metricas';
+    $payload = http_get_json($apiUrl);
+    return [
+        'ok' => true,
+        'schema' => 'ayudave-external-metrics-v1',
+        'generatedAt' => date(DATE_ATOM),
+        'source' => [
+            'id' => 'desaparecidos_terremoto_venezuela',
+            'name' => 'Desaparecidos Terremoto Venezuela',
+            'url' => $sourceUrl,
+            'api' => $apiUrl,
+            'mode' => 'aggregate_only',
+        ],
+        'privacy' => [
+            'aggregateOnly' => true,
+            'peopleImported' => false,
+            'note' => 'AyudaVE muestra solo metricas agregadas; no importa fichas personales, fotos, documentos ni contactos desde esta fuente.',
+        ],
+        'metrics' => normalize_external_people_metrics($payload),
     ];
 }
 
@@ -2410,6 +2463,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     if ($action === 'sync_status') {
         respond(200, public_sync_status($pdo, $dataFile, $cronLogFile));
+    }
+    if ($action === 'external_metrics') {
+        try {
+            respond(200, public_external_metrics());
+        } catch (Throwable $error) {
+            error_log('AyudaVE external metrics failed: ' . $error->getMessage());
+            respond(502, ['ok' => false, 'error' => 'No se pudieron leer metricas externas.']);
+        }
     }
     if ($action === 'people') {
         if (!$pdo) {

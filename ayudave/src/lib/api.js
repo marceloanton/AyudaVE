@@ -46,6 +46,18 @@ export async function fetchMissingPeoplePage({ limit = 300, offset = 0, status =
   return payload;
 }
 
+export async function fetchExternalMetrics() {
+  const response = await fetch(`${apiUrl}?action=external_metrics&t=${Date.now()}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.ok || !payload.metrics) {
+    throw new Error(payload.error || "No se pudieron cargar metricas externas.");
+  }
+  return payload;
+}
+
 export async function fetchHealth() {
   const response = await fetch(`${apiUrl}?action=health&t=${Date.now()}`, {
     headers: { Accept: "application/json" },

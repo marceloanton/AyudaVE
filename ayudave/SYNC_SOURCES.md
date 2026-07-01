@@ -80,6 +80,17 @@ Categorias usadas:
 - `news_context`: cobertura periodistica para contraste y contexto, no para
   importacion automatica.
 
+## Metricas agregadas de personas
+
+AyudaVE expone `api.php?action=external_metrics` para mostrar conteos agregados
+de `desaparecidosterremotovenezuela.com` sin importar fichas personales. La
+respuesta incluye solo totales como personas unicas aproximadas, aun sin
+contacto y localizadas.
+
+Estas cifras no se suman a `missingPeopleTotal` porque pertenecen a otra
+plataforma con su propio proceso de deduplicacion y moderacion. Usarlas solo
+como referencia visible con atribucion y link al origen.
+
 ## Alcance regional
 
 AyudaVE debe poder reutilizarse para otros paises, ciudades o emergencias.

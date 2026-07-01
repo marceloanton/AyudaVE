@@ -34,7 +34,7 @@
       "get": {
         "tags": ["Public data"],
         "summary": "Read AyudaVE public API actions.",
-        "description": "Use action=metadata for API metadata, action=sync_status for source freshness, action=export_public for JSON synchronization, or action=export_csv with dataset=reports/helpPoints/missingPeople for CSV downloads.",
+        "description": "Use action=metadata for API metadata, action=sync_status for source freshness, action=export_public for JSON synchronization, action=people for paginated missing/found people, action=external_metrics for aggregate-only external people metrics, or action=export_csv with dataset=reports/helpPoints/missingPeople for CSV downloads.",
         "parameters": [
           {
             "name": "action",
@@ -42,11 +42,12 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["metadata", "sync_status", "export_public", "export_csv", "people"]
+              "enum": ["metadata", "sync_status", "export_public", "export_csv", "people", "external_metrics"]
             },
             "examples": {
               "metadata": { "value": "metadata" },
               "syncStatus": { "value": "sync_status" },
+              "externalMetrics": { "value": "external_metrics" },
               "json": { "value": "export_public" },
               "csv": { "value": "export_csv" }
             }
@@ -117,6 +118,7 @@
                   "oneOf": [
                     { "$ref": "#/components/schemas/MetadataResponse" },
                     { "$ref": "#/components/schemas/SyncStatusResponse" },
+                    { "$ref": "#/components/schemas/ExternalMetricsResponse" },
                     { "$ref": "#/components/schemas/PublicExportResponse" },
                     { "$ref": "#/components/schemas/PeopleResponse" }
                   ]
@@ -267,6 +269,7 @@
               "csvHelpPoints": { "type": "string", "format": "uri" },
               "csvMissingPeople": { "type": "string", "format": "uri" },
               "syncStatus": { "type": "string", "format": "uri" },
+              "externalMetrics": { "type": "string", "format": "uri" },
               "schema": { "type": "string", "format": "uri" },
               "openapi": { "type": "string", "format": "uri" },
               "enabled": { "type": "boolean" }
@@ -304,6 +307,58 @@
           "sources": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/SourceSyncSummary" }
+          }
+        }
+      },
+      "ExternalMetricsResponse": {
+        "type": "object",
+        "required": ["ok", "schema", "generatedAt", "source", "privacy", "metrics"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "schema": { "type": "string", "enum": ["ayudave-external-metrics-v1"] },
+          "generatedAt": { "type": "string", "format": "date-time" },
+          "source": {
+            "type": "object",
+            "required": ["id", "name", "url", "mode"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "api": { "type": "string", "format": "uri" },
+              "mode": { "type": "string", "enum": ["aggregate_only"] }
+            }
+          },
+          "privacy": {
+            "type": "object",
+            "properties": {
+              "aggregateOnly": { "type": "boolean" },
+              "peopleImported": { "type": "boolean" },
+              "note": { "type": "string" }
+            }
+          },
+          "metrics": {
+            "type": "object",
+            "required": ["totalPeople", "withoutContact", "localized"],
+            "properties": {
+              "totalPeople": { "type": "integer" },
+              "withoutContact": { "type": "integer" },
+              "localized": { "type": "integer" },
+              "localizedHospital": { "type": "integer" },
+              "localizedCenter": { "type": "integer" },
+              "reportedConcerns": { "type": "integer" },
+              "topRegions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "total": { "type": "integer" },
+                    "withoutContact": { "type": "integer" },
+                    "localized": { "type": "integer" }
+                  }
+                }
+              }
+            }
           }
         }
       },

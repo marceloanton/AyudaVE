@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { helpPoints, seedReports } from "../data/catalog";
-import { createServerReport, fetchMissingPeoplePage, fetchServerPayload, fetchSyncStatus, validateHelpPoint } from "../lib/api";
+import { createServerReport, fetchExternalMetrics, fetchMissingPeoplePage, fetchServerPayload, fetchSyncStatus, validateHelpPoint } from "../lib/api";
 import { getTranslator } from "../lib/i18n";
 import {
   loadLocalReports,
@@ -89,6 +89,7 @@ export function PublicApp() {
   const [missingPeople, setMissingPeople] = useState([]);
   const [missingPeopleCounts, setMissingPeopleCounts] = useState(null);
   const [missingPeoplePage, setMissingPeoplePage] = useState({ hasMore: false, nextOffset: 0, total: 0 });
+  const [externalPeopleMetrics, setExternalPeopleMetrics] = useState(null);
   const [isLoadingMorePeople, setIsLoadingMorePeople] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [serverSyncAvailable, setServerSyncAvailable] = useState(false);
@@ -127,8 +128,8 @@ export function PublicApp() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.allSettled([fetchServerPayload(), fetchSyncStatus()])
-      .then(([payloadResult, syncResult]) => {
+    Promise.allSettled([fetchServerPayload(), fetchSyncStatus(), fetchExternalMetrics()])
+      .then(([payloadResult, syncResult, externalMetricsResult]) => {
         if (cancelled) return;
 
         if (payloadResult.status === "fulfilled") {
@@ -150,6 +151,10 @@ export function PublicApp() {
 
         if (syncResult.status === "fulfilled") {
           setSyncStatus(syncResult.value);
+        }
+
+        if (externalMetricsResult.status === "fulfilled") {
+          setExternalPeopleMetrics(externalMetricsResult.value);
         }
       })
       .catch(() => {
@@ -379,6 +384,7 @@ export function PublicApp() {
               counts={missingPeopleCounts}
               hasMore={missingPeoplePage.hasMore}
               isLoadingMore={isLoadingMorePeople}
+              externalMetrics={externalPeopleMetrics}
               onLoadMore={handleLoadMorePeople}
               people={missingPeople}
               total={missingPeoplePage.total}
