@@ -30,10 +30,10 @@ function toPoint(item) {
 
 function clusterPixelRadius(zoom) {
   if (zoom >= 10) return 0;
-  if (zoom >= 9) return 50;
-  if (zoom >= 8) return 62;
-  if (zoom >= 7) return 76;
-  return 94;
+  if (zoom >= 9) return 66;
+  if (zoom >= 8) return 88;
+  if (zoom >= 7) return 112;
+  return 140;
 }
 
 function clusterPoints(points, map, zoom) {
@@ -162,7 +162,7 @@ function ClusterMarker({ cluster, t }) {
   const map = useMap();
   const hasUrgent = cluster.urgent > 0;
   const displayCount = cluster.count > 99 ? "99+" : String(cluster.count);
-  const size = Math.min(54, Math.max(38, 34 + Math.sqrt(cluster.count) * 1.8));
+  const size = Math.min(46, Math.max(36, 32 + Math.sqrt(cluster.count) * 1.4));
   const label = `${cluster.count} ${t.map.clusterItems}`;
   const icon = useMemo(
     () => L.divIcon({
