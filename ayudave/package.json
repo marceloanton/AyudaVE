@@ -8,6 +8,7 @@
     "build": "vite build && node scripts/copy-server-files.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "check": "eslint .",
+    "metrics:update": "node scripts/update-external-metrics.mjs",
     "verify:local": "powershell -ExecutionPolicy Bypass -File scripts\\verify-local-package.ps1"
   },
   "dependencies": {

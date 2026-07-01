@@ -91,6 +91,11 @@ Estas cifras no se suman a `missingPeopleTotal` porque pertenecen a otra
 plataforma con su propio proceso de deduplicacion y moderacion. Usarlas solo
 como referencia visible con atribucion y link al origen.
 
+Si el hosting bloquea salida HTTP desde PHP, `api.php?action=external_metrics`
+usa `external-metrics.json` como snapshot agregado. Actualizarlo con
+`npm run metrics:update`; el workflow de GitHub `update-external-metrics.yml`
+lo corre cada hora y commitea cambios cuando hay nuevos totales.
+
 ## Alcance regional
 
 AyudaVE debe poder reutilizarse para otros paises, ciudades o emergencias.

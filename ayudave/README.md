@@ -58,6 +58,7 @@ AyudaVE expone endpoints publicos sin contactos personales:
 - `api.php?action=export_public&since=2026-06-28T00:00:00Z`: JSON incremental para traer solo cambios desde una fecha ISO 8601. Tambien acepta `updated_since`.
 - `api.php?action=export_csv&dataset=reports`: reportes en CSV.
 - `api.php?action=export_csv&dataset=helpPoints`: puntos de ayuda en CSV.
+- `api.php?action=external_metrics`: metricas agregadas externas de personas, sin fichas personales.
 - `openapi.json`: contrato OpenAPI para integraciones automaticas.
 
 Usar `trustLevel` para decidir si un dato viene verificado en origen, confirmado por comunidad o pendiente de validacion local.
@@ -74,6 +75,16 @@ php /ruta/a/ayudave/cron-sync.php
 
 El script lee `site_url` y `cron_token` desde `config.php`, sincroniza las fuentes configuradas y escribe un resumen en `data/cron-sync.log`.
 El cron usa `data/cron-sync.lock` y el backend usa `data/sync.lock` para evitar ejecuciones simultaneas.
+
+## Snapshot de metricas externas
+
+`external-metrics.json` guarda solo conteos agregados de fuentes externas de personas. No contiene fichas, fotos, documentos ni contactos. Se actualiza con:
+
+```powershell
+npm run metrics:update
+```
+
+El workflow `.github/workflows/update-external-metrics.yml` ejecuta ese comando cada hora y commitea el snapshot si cambian los totales. En hostings que bloquean salida HTTP desde PHP, `api.php?action=external_metrics` usa ese snapshot como respaldo.
 
 ## Archivos principales
 
