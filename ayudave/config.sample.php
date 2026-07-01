@@ -14,6 +14,8 @@ return [
         'venezuela_reporta_personas',
         'venezuela_reporta_ingresos',
         'localizados_venezuela',
+        // Activar solo si la API externa permite acceso estable.
+        // 'desaparecidos_terremoto_venezuela_personas',
     ],
     'public_export' => [
         'enabled' => true,

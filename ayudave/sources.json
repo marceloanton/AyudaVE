@@ -195,6 +195,14 @@
       "privacy": "Personas desaparecidas/localizadas. AyudaVE solo muestra metricas agregadas desde esta fuente; no importa fichas, fotos, documentos ni contactos sin validacion independiente."
     },
     {
+      "id": "desaparecidos_terremoto_venezuela_personas",
+      "name": "Desaparecidos Terremoto Venezuela - Personas protegidas",
+      "url": "https://desaparecidos-terremoto-api.theempire.tech/api/personas",
+      "category": "people",
+      "sync": "review_before_enable",
+      "privacy": "Importador preparado para fichas publicas con redaccion estricta: sin cedulas, sin contactos, sin fotos, menores con nombre reducido y estado externo a validar. Activar solo si la API permite acceso estable."
+    },
+    {
       "id": "sos_venezuela_2026",
       "name": "SOS Venezuela 2026",
       "url": "https://sosvenezuela2026.com/",

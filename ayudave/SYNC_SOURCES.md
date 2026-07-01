@@ -96,6 +96,21 @@ usa `external-metrics.json` como snapshot agregado. Actualizarlo con
 `npm run metrics:update`; el workflow de GitHub `update-external-metrics.yml`
 lo corre cada hora y commitea cambios cuando hay nuevos totales.
 
+## Importacion protegida de Desaparecidos Terremoto Venezuela
+
+Existe un importador preparado para `desaparecidos_terremoto_venezuela_personas`.
+No esta activo por defecto porque el endpoint publico de fichas responde `403`
+desde clientes sin permiso estable. Cuando la fuente habilite acceso, agregar
+ese ID a `sync_sources` en `config.php` o ejecutarlo manualmente desde admin.
+
+Reglas obligatorias del importador:
+
+- No guardar cedulas, telefonos, emails ni contactos.
+- No guardar fotos.
+- Reducir nombres de menores.
+- Marcar `verified = 0` y `source = desaparecidosterremotovenezuela.com`.
+- Mantener estado externo a validar y link al origen.
+
 ## Alcance regional
 
 AyudaVE debe poder reutilizarse para otros paises, ciudades o emergencias.

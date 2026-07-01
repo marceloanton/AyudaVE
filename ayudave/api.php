@@ -2283,6 +2283,86 @@ function normalize_localizados_venezuela(int $startPage = 1, int $maxPages = 50)
     return $rows;
 }
 
+function normalize_desaparecidos_terremoto_personas(int $page = 1, int $maxPages = 10): array
+{
+    $baseUrl = 'https://desaparecidos-terremoto-api.theempire.tech/api/personas';
+    $rows = [];
+    $page = max(1, $page);
+    $maxPages = max(1, min(25, $maxPages));
+    for ($currentPage = $page; $currentPage < $page + $maxPages; $currentPage++) {
+        $query = http_build_query([
+            'page' => $currentPage,
+            'pageSize' => 100,
+        ]);
+        $payload = http_get_json($baseUrl . '?' . $query);
+        $items = [];
+        if (is_array($payload['items'] ?? null)) {
+            $items = $payload['items'];
+        } elseif (is_array($payload['personas'] ?? null)) {
+            $items = $payload['personas'];
+        } elseif (array_is_list($payload)) {
+            $items = $payload;
+        }
+        if (!$items) {
+            break;
+        }
+
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+            $externalId = clean_text($item['id'] ?? $item['_id'] ?? $item['slug'] ?? stable_hash($item), 140);
+            $name = (string) ($item['nombre'] ?? $item['nombreCompleto'] ?? $item['name'] ?? '');
+            $age = isset($item['edad']) && is_numeric($item['edad']) ? max(0, min(120, (int) $item['edad'])) : null;
+            $city = clean_text($item['estadoNombre'] ?? $item['estado'] ?? $item['ciudad'] ?? $item['ubicacion'] ?? '', 120);
+            $zone = clean_text($item['municipioNombre'] ?? $item['municipio'] ?? $item['parroquiaNombre'] ?? $item['parroquia'] ?? '', 160);
+            $lastSeen = clean_text($item['ultimaVez'] ?? $item['ultima_vez'] ?? $item['ubicacion'] ?? '', 200);
+            $rawStatus = (string) ($item['estadoPersona'] ?? $item['estado'] ?? $item['status'] ?? '');
+            $isMinor = likely_minor_from_person_data($age, $name, $city, $zone);
+            $createdAt = strtotime((string) ($item['createdAt'] ?? $item['created_at'] ?? $item['fechaReporte'] ?? '')) ?: time();
+            $updatedAt = strtotime((string) ($item['updatedAt'] ?? $item['updated_at'] ?? '')) ?: $createdAt;
+            $sourceUrl = clean_text($item['url'] ?? $item['ficha_url'] ?? 'https://desaparecidosterremotovenezuela.com/', 255);
+            $description = clean_text(implode(' - ', array_filter([
+                clean_text($item['descripcion'] ?? $item['observaciones'] ?? '', 240),
+                'Fuente externa sensible. AyudaVE importa version reducida; validar en origen antes de actuar.',
+            ])), 420);
+            $rows[] = [
+                'id' => 'person-dtv-' . substr(stable_hash($externalId), 0, 18),
+                'display_name' => safe_person_display_name($name, $isMinor),
+                'status' => map_missing_person_status($rawStatus),
+                'age' => $age,
+                'gender' => clean_text($item['genero'] ?? $item['sexo'] ?? '', 30),
+                'city' => $city,
+                'zone' => $zone,
+                'last_seen' => $lastSeen,
+                'description' => redact_sensitive_text($description)['text'],
+                'photo_url' => '',
+                'is_minor' => $isMinor ? 1 : 0,
+                'verified' => 0,
+                'source' => 'desaparecidosterremotovenezuela.com',
+                'source_url' => $sourceUrl,
+                'external_id' => $externalId,
+                'source_hash' => stable_hash([
+                    $externalId,
+                    $rawStatus,
+                    $name,
+                    $age,
+                    $city,
+                    $zone,
+                    $lastSeen,
+                    $item['updatedAt'] ?? $item['updated_at'] ?? null,
+                ]),
+                'created_at' => date('Y-m-d H:i:s', $createdAt),
+                'updated_at' => date('Y-m-d H:i:s', max($createdAt, $updatedAt)),
+            ];
+        }
+
+        $totalPages = isset($payload['totalPages']) && is_numeric($payload['totalPages']) ? (int) $payload['totalPages'] : null;
+        if (count($items) < 100 || ($totalPages !== null && $currentPage >= $totalPages)) {
+            break;
+        }
+    }
+    return $rows;
+}
+
 function db_upsert_missing_people(PDO $pdo, array $rows): array
 {
     $stats = ['fetched' => count($rows), 'inserted' => 0, 'updated' => 0, 'skipped' => 0];
@@ -2411,6 +2491,9 @@ function sync_external_source(PDO $pdo, string $source, array $externalApiKeys, 
     if ($source === 'localizados_venezuela') {
         return db_upsert_missing_people($pdo, normalize_localizados_venezuela((int) ($options['page'] ?? 1), (int) ($options['maxPages'] ?? 50)));
     }
+    if ($source === 'desaparecidos_terremoto_venezuela_personas') {
+        return db_upsert_missing_people($pdo, normalize_desaparecidos_terremoto_personas((int) ($options['page'] ?? 1), (int) ($options['maxPages'] ?? 10)));
+    }
 
     $rows = match ($source) {
         'terremotovenezuela_reports' => normalize_terremoto_reports(),
@@ -2447,7 +2530,7 @@ function sync_external_sources(PDO $pdo, array $sources, array $externalApiKeys,
                 $options = [];
                 if ($useCursor && in_array($source, ['venezuela_reporta_personas', 'venezuela_reporta_ingresos'], true)) {
                     $options = ['offset' => (int) ($cursors[$source]['offset'] ?? 0), 'maxRows' => 1000];
-                } elseif ($useCursor && $source === 'localizados_venezuela') {
+                } elseif ($useCursor && in_array($source, ['localizados_venezuela', 'desaparecidos_terremoto_venezuela_personas'], true)) {
                     $options = ['page' => (int) ($cursors[$source]['page'] ?? 1), 'maxPages' => 10];
                 }
                 $results[$source] = sync_external_source($pdo, $source, $externalApiKeys, $options);
@@ -2457,7 +2540,7 @@ function sync_external_sources(PDO $pdo, array $sources, array $externalApiKeys,
                     $nextOffset = $fetched > 0 ? $currentOffset + $fetched : 0;
                     $cursors[$source] = ['offset' => $nextOffset, 'updatedAt' => date(DATE_ATOM)];
                     $results[$source]['cursor'] = ['offset' => $currentOffset, 'nextOffset' => $nextOffset];
-                } elseif ($useCursor && $source === 'localizados_venezuela') {
+                } elseif ($useCursor && in_array($source, ['localizados_venezuela', 'desaparecidos_terremoto_venezuela_personas'], true)) {
                     $currentPage = (int) ($options['page'] ?? 1);
                     $fetched = (int) ($results[$source]['fetched'] ?? 0);
                     $nextPage = $fetched > 0 ? $currentPage + (int) ceil($fetched / 100) : 1;
