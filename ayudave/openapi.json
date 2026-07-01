@@ -325,9 +325,10 @@
               "name": { "type": "string" },
               "url": { "type": "string", "format": "uri" },
               "api": { "type": "string", "format": "uri" },
-              "mode": { "type": "string", "enum": ["aggregate_only"] }
+              "mode": { "type": "string", "enum": ["aggregate_only", "aggregate_snapshot"] }
             }
           },
+          "snapshotAt": { "type": ["string", "null"], "format": "date-time" },
           "privacy": {
             "type": "object",
             "properties": {

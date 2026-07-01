@@ -13,6 +13,7 @@ await cp(join(root, ".htaccess"), join(dist, ".htaccess"));
 await cp(join(root, "robots.txt"), join(dist, "robots.txt"));
 await cp(join(root, "sitemap.xml"), join(dist, "sitemap.xml"));
 await cp(join(root, "sources.json"), join(dist, "sources.json"));
+await cp(join(root, "external-metrics.json"), join(dist, "external-metrics.json"));
 await cp(join(root, "ayudave-public-export.schema.json"), join(dist, "ayudave-public-export.schema.json"));
 await cp(join(root, "openapi.json"), join(dist, "openapi.json"));
 await cp(join(root, "llms.txt"), join(dist, "llms.txt"));

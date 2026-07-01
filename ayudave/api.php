@@ -388,6 +388,29 @@ function public_external_metrics(): array
         }
     }
     if (!is_array($payload)) {
+        $snapshotFile = __DIR__ . '/external-metrics.json';
+        if (is_file($snapshotFile)) {
+            $snapshot = json_decode((string) file_get_contents($snapshotFile), true);
+            if (is_array($snapshot) && isset($snapshot['metrics']) && is_array($snapshot['metrics'])) {
+                return [
+                    'ok' => true,
+                    'schema' => 'ayudave-external-metrics-v1',
+                    'generatedAt' => date(DATE_ATOM),
+                    'source' => $snapshot['source'] ?? [
+                        'id' => 'desaparecidos_terremoto_venezuela',
+                        'name' => 'Desaparecidos Terremoto Venezuela',
+                        'url' => $sourceUrl,
+                        'mode' => 'aggregate_snapshot',
+                    ],
+                    'privacy' => $snapshot['privacy'] ?? [
+                        'aggregateOnly' => true,
+                        'peopleImported' => false,
+                    ],
+                    'metrics' => $snapshot['metrics'],
+                    'snapshotAt' => $snapshot['snapshotAt'] ?? null,
+                ];
+            }
+        }
         throw new RuntimeException('No se pudieron leer metricas externas.');
     }
     return [
