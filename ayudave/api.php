@@ -31,8 +31,8 @@ $configFile = __DIR__ . '/config.php';
 $sourcesFile = __DIR__ . '/sources.json';
 $adminPin = getenv('AYUDAVE_ADMIN_PIN') ?: '';
 $cronToken = getenv('AYUDAVE_CRON_TOKEN') ?: '';
-$syncSources = ['terremotovenezuela_reports', 'centros_acopio', 'venezuela_reporta_sitios', 'refugios_venezuela', 'acopios_refugios', 'venezuela_reporta_personas'];
-$publicExportConfig = ['enabled' => true, 'max_reports' => 500, 'max_help_points' => 1000, 'max_missing_people' => 500];
+$syncSources = ['terremotovenezuela_reports', 'centros_acopio', 'venezuela_reporta_sitios', 'refugios_venezuela', 'acopios_refugios', 'venezuela_reporta_personas', 'venezuela_reporta_ingresos', 'localizados_venezuela'];
+$publicExportConfig = ['enabled' => true, 'max_reports' => 500, 'max_help_points' => 1000, 'max_missing_people' => 5000];
 $externalApiKeys = [];
 $dbConfig = null;
 $dbRequired = false;
@@ -48,8 +48,10 @@ if (is_file($configFile)) {
     if (is_array($config) && isset($config['sync_sources']) && is_array($config['sync_sources'])) {
         $syncSources = array_values(array_filter(array_map('strval', $config['sync_sources'])));
     }
-    if (!in_array('venezuela_reporta_personas', $syncSources, true)) {
-        $syncSources[] = 'venezuela_reporta_personas';
+    foreach (['venezuela_reporta_personas', 'venezuela_reporta_ingresos', 'localizados_venezuela'] as $requiredSource) {
+        if (!in_array($requiredSource, $syncSources, true)) {
+            $syncSources[] = $requiredSource;
+        }
     }
     if (is_array($config) && isset($config['public_export']) && is_array($config['public_export'])) {
         $publicExportConfig = array_merge($publicExportConfig, $config['public_export']);
@@ -205,6 +207,17 @@ function read_cron_status(string $cronLogFile): array
         'lastOk' => null,
         'lastSummary' => clean_text($lastLine, 600),
     ];
+}
+
+function write_cron_status(string $cronLogFile, int $status, bool $ok, array $payload): void
+{
+    $dir = dirname($cronLogFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    $summary = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $line = sprintf("[%s] status=%d ok=%s %s\n", date(DATE_ATOM), $status, $ok ? 'true' : 'false', clean_text($summary ?: '', 1200));
+    @file_put_contents($cronLogFile, $line, FILE_APPEND | LOCK_EX);
 }
 
 function file_sync_summary(string $dataFile): array
@@ -1184,8 +1197,23 @@ function map_missing_person_status(string $status): string
     $normalized = strtolower(trim($status));
     return match ($normalized) {
         'a_salvo', 'encontrado', 'encontrada', 'found', 'safe' => 'Encontrado',
+        'localizado', 'localizada', 'located', 'ingreso', 'ingresado', 'listado' => 'Localizado',
         default => 'Buscando',
     };
+}
+
+function likely_minor_from_person_data(mixed $age, string ...$textParts): bool
+{
+    if (is_numeric($age) && (int) $age > 0 && (int) $age < 18) {
+        return true;
+    }
+    $haystack = normalize_location_text(implode(' ', $textParts));
+    foreach (['menor', 'nino', 'nina', 'adolescente', 'bebe', 'recien nacido'] as $needle) {
+        if (str_contains($haystack, $needle)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function safe_person_display_name(string $name, bool $isMinor): string
@@ -1233,7 +1261,7 @@ function format_missing_person(array $row): array
 
 function db_read_missing_people(PDO $pdo, int $limit = 300, ?array $since = null): array
 {
-    $limit = max(1, min(1000, $limit));
+    $limit = max(1, min(5000, $limit));
     $where = '';
     $params = [];
     if ($since) {
@@ -1245,7 +1273,7 @@ function db_read_missing_people(PDO $pdo, int $limit = 300, ?array $since = null
          FROM missing_people
          {$where}
          ORDER BY
-            CASE WHEN status = 'Buscando' THEN 0 ELSE 1 END,
+            CASE WHEN status = 'Buscando' THEN 0 WHEN status = 'Localizado' THEN 1 ELSE 2 END,
             COALESCE(updated_at, created_at, synced_at) DESC
          LIMIT {$limit}"
     );
@@ -1259,6 +1287,7 @@ function db_missing_people_counts(PDO $pdo): array
         "SELECT
             COUNT(*) AS total,
             SUM(status = 'Buscando') AS searching,
+            SUM(status = 'Localizado') AS localized,
             SUM(status = 'Encontrado') AS found,
             MAX(synced_at) AS last_synced_at
          FROM missing_people"
@@ -1267,6 +1296,7 @@ function db_missing_people_counts(PDO $pdo): array
     return [
         'total' => (int) ($row['total'] ?? 0),
         'searching' => (int) ($row['searching'] ?? 0),
+        'localized' => (int) ($row['localized'] ?? 0),
         'found' => (int) ($row['found'] ?? 0),
         'lastSyncedAt' => $synced ? date(DATE_ATOM, $synced) : null,
     ];
@@ -1904,7 +1934,7 @@ function normalize_venezuela_reporta_personas(): array
     $baseUrl = 'https://venezuelareporta.org/api/v1/personas';
     $rows = [];
     $limit = 100;
-    for ($offset = 0; $offset < 500; $offset += $limit) {
+    for ($offset = 0; $offset < 5000; $offset += $limit) {
         $payload = http_get_json($baseUrl . '?limit=' . $limit . '&offset=' . $offset);
         $items = is_array($payload['personas'] ?? null) ? $payload['personas'] : [];
         if (!$items) {
@@ -1958,6 +1988,119 @@ function normalize_venezuela_reporta_personas(): array
             ];
         }
         if (count($items) < $limit) {
+            break;
+        }
+    }
+    return $rows;
+}
+
+function normalize_venezuela_reporta_ingresos(): array
+{
+    $baseUrl = 'https://venezuelareporta.org/api/v1/ingresos';
+    $rows = [];
+    $limit = 100;
+    for ($offset = 0; $offset < 5000; $offset += $limit) {
+        $payload = http_get_json($baseUrl . '?limit=' . $limit . '&offset=' . $offset);
+        $items = is_array($payload['personas'] ?? null) ? $payload['personas'] : [];
+        if (!$items) {
+            break;
+        }
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+            $externalId = clean_text($item['id'] ?? stable_hash($item), 120);
+            $age = isset($item['edad']) && is_numeric($item['edad']) ? max(0, min(120, (int) $item['edad'])) : null;
+            $name = (string) ($item['nombre'] ?? '');
+            $location = clean_text($item['ubicacion'] ?? '', 180);
+            $origin = clean_text($item['procedencia'] ?? '', 140);
+            $sourceName = clean_text($item['fuente'] ?? '', 120);
+            $collector = clean_text($item['recopilado_de'] ?? '', 120);
+            $isMinor = likely_minor_from_person_data($age, $name, $origin, $location);
+            $createdAt = strtotime((string) ($item['created_at'] ?? '')) ?: time();
+            $description = clean_text(implode(' - ', array_filter([
+                $collector ? 'Recopilado de: ' . $collector : '',
+                $sourceName ? 'Fuente: ' . $sourceName : '',
+                'Listado externo. No confirma por si solo que la persona este a salvo; validar en la ficha original.',
+            ])), 420);
+            $rows[] = [
+                'id' => 'person-vreporta-ingreso-' . substr(stable_hash($externalId), 0, 18),
+                'display_name' => safe_person_display_name($name, $isMinor),
+                'status' => 'Localizado',
+                'age' => $age,
+                'gender' => clean_text($item['sexo'] ?? '', 30),
+                'city' => $origin,
+                'zone' => $location,
+                'last_seen' => $location,
+                'description' => redact_sensitive_text($description)['text'],
+                'photo_url' => '',
+                'is_minor' => $isMinor ? 1 : 0,
+                'verified' => 0,
+                'source' => 'venezuelareporta.org/ingresos',
+                'source_url' => clean_text($item['ficha_url'] ?? $baseUrl, 255),
+                'external_id' => $externalId,
+                'source_hash' => stable_hash([$name, $age, $origin, $location, $sourceName, $collector, $item['created_at'] ?? null]),
+                'created_at' => date('Y-m-d H:i:s', $createdAt),
+                'updated_at' => date('Y-m-d H:i:s', $createdAt),
+            ];
+        }
+        if (count($items) < $limit) {
+            break;
+        }
+    }
+    return $rows;
+}
+
+function normalize_localizados_venezuela(): array
+{
+    $baseUrl = 'https://localizadosvenezuela.com/api/v1/localizados';
+    $rows = [];
+    $limit = 100;
+    for ($page = 1; $page <= 50; $page++) {
+        $payload = http_get_json($baseUrl . '?limit=' . $limit . '&page=' . $page);
+        $items = is_array($payload['data'] ?? null) ? $payload['data'] : [];
+        if (!$items) {
+            break;
+        }
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+            $externalId = clean_text($item['slug'] ?? stable_hash($item), 140);
+            $name = (string) ($item['nombreCompleto'] ?? '');
+            $address = clean_text($item['direccion'] ?? '', 180);
+            $placeName = clean_text($item['lugarNombre'] ?? '', 160);
+            $condition = clean_text($item['condicion'] ?? '', 120);
+            $notes = clean_text($item['observaciones'] ?? '', 260);
+            $sourceName = clean_text($item['fuente'] ?? '', 120);
+            $isMinor = likely_minor_from_person_data(null, $name, $condition, $notes);
+            $publishedAt = strtotime((string) ($item['publicadoEn'] ?? '')) ?: time();
+            $description = clean_text(implode(' - ', array_filter([
+                $condition ? 'Condicion: ' . $condition : '',
+                $notes,
+                $sourceName ? 'Fuente: ' . $sourceName : '',
+                'Listado externo de persona localizada. Validar datos sensibles en la fuente original.',
+            ])), 420);
+            $rows[] = [
+                'id' => 'person-localizadosve-' . substr(stable_hash($externalId), 0, 18),
+                'display_name' => safe_person_display_name($name, $isMinor),
+                'status' => 'Localizado',
+                'age' => null,
+                'gender' => '',
+                'city' => $address,
+                'zone' => $placeName,
+                'last_seen' => $placeName,
+                'description' => redact_sensitive_text($description)['text'],
+                'photo_url' => '',
+                'is_minor' => $isMinor ? 1 : 0,
+                'verified' => 0,
+                'source' => 'localizadosvenezuela.com',
+                'source_url' => 'https://localizadosvenezuela.com/',
+                'external_id' => $externalId,
+                'source_hash' => stable_hash([$name, $address, $placeName, $condition, $notes, $sourceName, $item['publicadoEn'] ?? null]),
+                'created_at' => date('Y-m-d H:i:s', $publishedAt),
+                'updated_at' => date('Y-m-d H:i:s', $publishedAt),
+            ];
+        }
+        $meta = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
+        $totalPages = isset($meta['totalPages']) && is_numeric($meta['totalPages']) ? (int) $meta['totalPages'] : null;
+        if (count($items) < $limit || ($totalPages !== null && $page >= $totalPages)) {
             break;
         }
     }
@@ -2085,6 +2228,12 @@ function sync_external_source(PDO $pdo, string $source, array $externalApiKeys):
 {
     if ($source === 'venezuela_reporta_personas') {
         return db_upsert_missing_people($pdo, normalize_venezuela_reporta_personas());
+    }
+    if ($source === 'venezuela_reporta_ingresos') {
+        return db_upsert_missing_people($pdo, normalize_venezuela_reporta_ingresos());
+    }
+    if ($source === 'localizados_venezuela') {
+        return db_upsert_missing_people($pdo, normalize_localizados_venezuela());
     }
 
     $rows = match ($source) {
@@ -2251,10 +2400,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'cron_sync') {
         require_cron_token(clean_text($_GET['token'] ?? '', 160), $cronToken);
         if (!$pdo) {
-            respond(503, ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.']);
+            $payload = ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.'];
+            write_cron_status($cronLogFile, 503, false, $payload);
+            respond(503, $payload);
         }
         $sources = isset($_GET['sources']) ? explode(',', clean_text($_GET['sources'], 240)) : $syncSources;
-        respond(200, ['ok' => true, 'generatedAt' => date(DATE_ATOM), 'sources' => sync_external_sources($pdo, $sources, $externalApiKeys)]);
+        $results = sync_external_sources($pdo, $sources, $externalApiKeys);
+        $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
+        $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
+        write_cron_status($cronLogFile, 200, $ok, $payload);
+        respond(200, $payload);
     }
     if ($action !== 'payload') {
         respond(400, ['ok' => false, 'error' => 'Accion invalida.']);
@@ -2399,10 +2554,16 @@ if ($action === 'sync_external') {
 if ($action === 'cron_sync') {
     require_cron_token(clean_text($input['cron_token'] ?? '', 160), $cronToken);
     if (!$pdo) {
-        respond(503, ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.']);
+        $payload = ['ok' => false, 'error' => 'La sincronizacion requiere base de datos.'];
+        write_cron_status($cronLogFile, 503, false, $payload);
+        respond(503, $payload);
     }
     $sources = isset($input['sources']) && is_array($input['sources']) ? $input['sources'] : $syncSources;
-    respond(200, ['ok' => true, 'generatedAt' => date(DATE_ATOM), 'sources' => sync_external_sources($pdo, $sources, $externalApiKeys)]);
+    $results = sync_external_sources($pdo, $sources, $externalApiKeys);
+    $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
+    $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
+    write_cron_status($cronLogFile, 200, $ok, $payload);
+    respond(200, $payload);
 }
 
 if ($action === 'validate_help_point') {

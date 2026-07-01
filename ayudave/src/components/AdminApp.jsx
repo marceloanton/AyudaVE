@@ -31,6 +31,8 @@ const syncSources = [
   ["refugios_venezuela", "Sync refugios"],
   ["acopios_refugios", "Sync acopios/refugios"],
   ["venezuela_reporta_personas", "Sync personas"],
+  ["venezuela_reporta_ingresos", "Sync ingresos"],
+  ["localizados_venezuela", "Sync localizados"],
 ];
 
 const queueOptions = [

@@ -31,6 +31,7 @@
   body {
     @apply m-0 bg-ayuda-bg font-sans text-ayuda-text;
     letter-spacing: 0;
+    overflow-x: hidden;
   }
 
   button,
@@ -49,11 +50,13 @@
   .app-shell {
     @apply grid h-screen overflow-hidden bg-ayuda-bg;
     grid-template-rows: 68px 1fr 58px;
+    max-width: 100vw;
   }
 
   .topbar {
     @apply grid items-stretch border-b border-ayuda-line bg-white;
     grid-template-columns: minmax(240px, 320px) minmax(0, 1fr) auto;
+    max-width: 100vw;
   }
 
   .brand,
@@ -1747,7 +1750,7 @@
 
   .people-summary {
     @apply grid gap-2;
-    grid-template-columns: repeat(4, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   }
 
   .people-summary article {
@@ -1760,6 +1763,10 @@
 
   .people-summary article.is-ok {
     @apply border-[#a9d7a3] bg-[#edf8ee];
+  }
+
+  .people-summary article.is-info {
+    @apply border-[#9cc8dc] bg-[#edf7fb];
   }
 
   .people-summary strong {
@@ -1828,6 +1835,10 @@
 
   .person-title-row span.is-found {
     @apply bg-[#edf8ee] text-[#2d6d34];
+  }
+
+  .person-title-row span.is-localized {
+    @apply bg-[#e8f4fb] text-[#00607a];
   }
 
   .person-card p {
@@ -2695,8 +2706,10 @@
   .tabs {
     justify-content: flex-start;
     gap: 4px;
+    max-width: 100vw;
     min-height: 58px;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     padding: 0 8px;
   }
 
@@ -2719,6 +2732,45 @@
   .dashboard {
     grid-template-columns: 1fr;
     overflow: auto;
+  }
+
+  .people-view {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    padding: 16px;
+  }
+
+  .people-header {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .people-header h1 {
+    font-size: 32px;
+  }
+
+  .people-header a {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .people-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .people-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .people-tools div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .people-tools button {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .report-panel {

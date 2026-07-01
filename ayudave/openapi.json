@@ -390,7 +390,7 @@
         "properties": {
           "id": { "type": "string" },
           "displayName": { "type": "string" },
-          "status": { "type": "string", "enum": ["Buscando", "Encontrado"] },
+          "status": { "type": "string", "enum": ["Buscando", "Localizado", "Encontrado"] },
           "age": { "type": ["integer", "null"] },
           "gender": { "type": "string" },
           "city": { "type": "string" },

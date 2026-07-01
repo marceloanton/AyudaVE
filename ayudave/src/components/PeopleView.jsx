@@ -13,6 +13,7 @@ function normalizeText(value) {
 
 export function PeopleView({ people = [], t }) {
   const searching = people.filter((person) => person.status === "Buscando");
+  const localized = people.filter((person) => person.status === "Localizado");
   const found = people.filter((person) => person.status === "Encontrado");
   const verified = people.filter((person) => person.verified);
   const [query, setQuery] = useState("");
@@ -47,6 +48,10 @@ export function PeopleView({ people = [], t }) {
           <strong>{found.length}</strong>
           <span>{t.people.found}</span>
         </article>
+        <article className="is-info">
+          <strong>{localized.length}</strong>
+          <span>{t.people.localized}</span>
+        </article>
         <article>
           <strong>{verified.length}</strong>
           <span>{t.people.verified}</span>
@@ -64,6 +69,7 @@ export function PeopleView({ people = [], t }) {
           {[
             ["todos", t.people.all],
             ["Buscando", t.people.searching],
+            ["Localizado", t.people.localized],
             ["Encontrado", t.people.found],
           ].map(([value, label]) => (
             <button className={status === value ? "is-active" : ""} key={value} onClick={() => setStatus(value)} type="button">
@@ -85,7 +91,9 @@ export function PeopleView({ people = [], t }) {
             <div>
               <div className="person-title-row">
                 <h2>{person.displayName}</h2>
-                <span className={person.status === "Encontrado" ? "is-found" : "is-searching"}>{person.status}</span>
+                <span className={person.status === "Encontrado" ? "is-found" : person.status === "Localizado" ? "is-localized" : "is-searching"}>
+                  {person.status}
+                </span>
               </div>
               <p>{[person.city, person.zone].filter(Boolean).join(" - ") || t.people.locationUnknown}</p>
               <dl>

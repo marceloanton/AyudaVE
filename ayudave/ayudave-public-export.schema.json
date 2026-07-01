@@ -131,7 +131,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 120 },
         "displayName": { "type": "string", "maxLength": 140 },
-        "status": { "type": "string", "enum": ["Buscando", "Encontrado"] },
+        "status": { "type": "string", "enum": ["Buscando", "Localizado", "Encontrado"] },
         "age": { "type": ["integer", "null"], "minimum": 0, "maximum": 120 },
         "gender": { "type": "string", "maxLength": 30 },
         "city": { "type": "string", "maxLength": 120 },

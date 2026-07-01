@@ -1,6 +1,6 @@
 {
   "name": "AyudaVE public data sources",
-  "updated": "2026-06-30",
+  "updated": "2026-07-01",
   "public_export": "https://example.org/api.php?action=export_public",
   "public_export_incremental_example": "https://example.org/api.php?action=export_public&since=2026-06-28T00:00:00Z",
   "metadata": "https://example.org/api.php?action=metadata",
@@ -29,6 +29,31 @@
       "id": "venezuela_reporta_sitios",
       "name": "Venezuela Reporta",
       "url": "https://venezuelareporta.org/api-abierta"
+    },
+    {
+      "id": "venezuela_reporta_personas",
+      "name": "Venezuela Reporta - Personas",
+      "url": "https://venezuelareporta.org/api/v1/personas",
+      "privacy": "Se sincronizan fichas publicas con reduccion de datos sensibles. Menores se muestran con nombre reducido y sin fotos no difuminadas."
+    },
+    {
+      "id": "venezuela_reporta_ingresos",
+      "name": "Venezuela Reporta - Ingresos y listados",
+      "url": "https://venezuelareporta.org/api/v1/ingresos",
+      "privacy": "Se marcan como Localizado. Aparecer en un listado no confirma por si solo que una persona este a salvo; validar en la ficha original."
+    },
+    {
+      "id": "localizados_venezuela",
+      "name": "Localizados Venezuela",
+      "url": "https://localizadosvenezuela.com/api/v1/localizados",
+      "privacy": "Se importan como Localizado con atribucion. No se publican documentos ni contactos en AyudaVE."
+    },
+    {
+      "id": "desaparecidosve",
+      "name": "Desaparecidos VE",
+      "url": "https://desaparecidosve.com/",
+      "sync": "manual_reference",
+      "privacy": "Referencia de cifras y contraste. No se importa automaticamente hasta tener API publica estable o permiso claro."
     },
     {
       "id": "refugios_venezuela",
