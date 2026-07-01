@@ -1,4 +1,4 @@
-const CACHE_NAME = "ayudave-shell-v5";
+const CACHE_NAME = "ayudave-shell-v6";
 const STATIC_URLS = [
   "./",
   "./index.html",

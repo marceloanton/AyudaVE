@@ -23,6 +23,9 @@
       h3 { margin:0 0 6px; font-size:1rem; }
       p { margin:0 0 12px; color:var(--muted); }
       a { color:var(--teal); font-weight:800; text-decoration-thickness:2px; text-underline-offset:3px; }
+      input { width:100%; min-height:40px; border:1px solid var(--line); border-radius:6px; padding:0 12px; color:var(--text); font:inherit; }
+      .page-nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+      .page-nav a { display:inline-flex; min-height:34px; align-items:center; border:1px solid var(--line); border-radius:6px; background:var(--surface); padding:0 12px; text-decoration:none; }
       .actions { display:flex; flex-wrap:wrap; gap:10px; }
       .button-link { display:inline-flex; min-height:38px; align-items:center; justify-content:center; border:1px solid var(--teal); border-radius:6px; background:var(--teal); color:#fff; padding:0 14px; text-decoration:none; }
       .button-link.secondary { background:#fff; color:var(--teal); }
@@ -34,11 +37,26 @@
       .tag.active { background:#e9f7ec; color:var(--green); }
       .trust { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
       .trust article { border:1px solid var(--line); border-radius:8px; background:var(--soft); padding:12px; }
+      .toolbar { display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:10px; align-items:start; margin-bottom:14px; }
+      .filters { display:flex; flex-wrap:wrap; gap:8px; }
+      .filter-btn { min-height:40px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--teal-dark); padding:0 12px; font-weight:900; cursor:pointer; }
+      .filter-btn.active { border-color:var(--teal); background:#e7f5f8; color:var(--teal); }
+      .source-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+      .empty { border:1px dashed var(--line); border-radius:8px; background:var(--soft); padding:16px; color:var(--muted); }
+      .technical-links { display:flex; flex-wrap:wrap; gap:10px; }
       @media (max-width:720px){ main{padding:18px 10px 32px;} section{padding:16px;} }
+      @media (max-width:820px){ .toolbar{grid-template-columns:1fr;} }
     </style>
   </head>
   <body>
     <main>
+      <nav class="page-nav" aria-label="Navegacion de fuentes">
+        <a href="./">App</a>
+        <a href="./datos-abiertos-ayudave.html">Datos abiertos</a>
+        <a href="./api-ayudave.html">API legible</a>
+        <a href="./estado-tecnico-ayudave.html">Estado</a>
+        <a href="./fuentes-ayudave.html">Fuentes</a>
+      </nav>
       <section>
         <h1>Fuentes AyudaVE</h1>
         <p>
@@ -47,7 +65,6 @@
         </p>
         <div class="actions">
           <a class="button-link" href="./datos-abiertos-ayudave.html">Volver a datos abiertos</a>
-          <a class="button-link secondary" href="./sources.json">Ver sources.json</a>
           <a class="button-link secondary" href="./estado-tecnico-ayudave.html">Estado tecnico</a>
         </div>
       </section>
@@ -57,34 +74,115 @@
       </section>
       <section>
         <h2>Fuentes y referencias</h2>
+        <div class="toolbar">
+          <input id="sourceSearch" type="search" placeholder="Buscar por nombre, categoria o politica de privacidad" />
+          <div class="filters" id="filters" aria-label="Filtros de fuentes"></div>
+        </div>
         <div class="source-grid" id="sources"></div>
+      </section>
+      <section>
+        <h2>Descargas tecnicas</h2>
+        <p>Estos enlaces son para integraciones, auditoria o monitoreo automatico.</p>
+        <div class="technical-links">
+          <a class="button-link secondary" href="./sources.json">Descargar sources.json</a>
+          <a class="button-link secondary" href="./api-ayudave.html">Ver API legible</a>
+          <a class="button-link secondary" href="./openapi.json">Descargar OpenAPI</a>
+        </div>
       </section>
     </main>
     <script>
       const trustRoot = document.getElementById("trust");
       const sourcesRoot = document.getElementById("sources");
+      const searchRoot = document.getElementById("sourceSearch");
+      const filterRoot = document.getElementById("filters");
+      let allSources = [];
+      let activeFilter = "all";
+
+      const filterLabels = {
+        all: "Todas",
+        active: "Sincronizadas",
+        review: "En revision",
+        manual: "Manual",
+        private: "Privadas",
+      };
+
+      const trustLabels = {
+        verified_origin: "Verificado en origen",
+        external_pending: "Fuente externa a validar",
+        community_confirmed: "Confirmado por comunidad",
+        community_pending: "Reporte comunitario pendiente",
+        resolved: "Resuelto",
+      };
+
       function syncClass(value) {
         if (String(value).includes("active")) return "active";
         if (String(value).includes("private")) return "private";
         if (String(value).includes("review")) return "review";
         return "manual";
       }
+
+      function syncLabel(value) {
+        const kind = syncClass(value);
+        if (kind === "active") return "Sincronizada";
+        if (kind === "private") return "Privada/admin";
+        if (kind === "review") return "En revision";
+        return "Manual";
+      }
+
+      function renderFilters() {
+        const counts = allSources.reduce((acc, source) => {
+          const kind = syncClass(source.sync);
+          acc[kind] = (acc[kind] || 0) + 1;
+          acc.all += 1;
+          return acc;
+        }, { all: 0, active: 0, review: 0, manual: 0, private: 0 });
+        filterRoot.innerHTML = Object.entries(filterLabels)
+          .map(([key, label]) => `<button class="filter-btn ${activeFilter === key ? "active" : ""}" type="button" data-filter="${key}">${label} (${counts[key] || 0})</button>`)
+          .join("");
+      }
+
+      function renderSourceList() {
+        const query = searchRoot.value.trim().toLowerCase();
+        const visible = allSources.filter((source) => {
+          const kind = syncClass(source.sync);
+          const text = [source.name, source.id, source.category, source.privacy, source.sync]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return (activeFilter === "all" || activeFilter === kind) && (!query || text.includes(query));
+        });
+        sourcesRoot.innerHTML = visible.length
+          ? visible.map((source) => `
+              <article class="source-card">
+                <h3>${source.name || source.id}</h3>
+                <p class="source-meta">
+                  <span class="tag ${syncClass(source.sync)}" title="${source.sync || "manual"}">${syncLabel(source.sync)}</span>
+                  <strong>${source.category || "referencia"}</strong>
+                </p>
+                <p>${source.privacy || "Revisar fuente antes de republicar datos."}</p>
+                ${source.url ? `<a href="${source.url}" rel="noreferrer" target="_blank">Abrir fuente</a>` : ""}
+              </article>
+            `).join("")
+          : '<div class="empty">No hay fuentes para ese filtro. Cambia la busqueda o revisa todas.</div>';
+      }
+
       function renderSources(data) {
         const trust = data.trust_levels || {};
-        const sources = Array.isArray(data.sources) ? data.sources : [];
+        allSources = Array.isArray(data.sources) ? data.sources : [];
         trustRoot.innerHTML = Object.entries(trust).map(([key, value]) => `
-          <article><h3>${key}</h3><p>${value}</p></article>
+          <article><h3 title="${key}">${trustLabels[key] || key}</h3><p>${value}</p></article>
         `).join("");
-        sourcesRoot.innerHTML = sources.map((source) => `
-          <article class="source-card">
-            <h3>${source.name || source.id}</h3>
-            <p><span class="tag ${syncClass(source.sync)}">${source.sync || "manual"}</span></p>
-            <p><strong>${source.category || "referencia"}</strong></p>
-            <p>${source.privacy || "Revisar fuente antes de republicar datos."}</p>
-            ${source.url ? `<a href="${source.url}" rel="noreferrer" target="_blank">Abrir fuente</a>` : ""}
-          </article>
-        `).join("");
+        renderFilters();
+        renderSourceList();
       }
+      searchRoot.addEventListener("input", renderSourceList);
+      filterRoot.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-filter]");
+        if (!button) return;
+        activeFilter = button.dataset.filter;
+        renderFilters();
+        renderSourceList();
+      });
       fetch("./sources.json", { cache: "no-store" })
         .then((res) => {
           if (!res.ok) throw new Error("No se pudo leer sources.json");

@@ -131,6 +131,24 @@
         gap: 12px;
       }
 
+      .page-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .page-nav a {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        padding: 0 12px;
+        text-decoration: none;
+      }
+
       .hero-actions,
       .quick-links {
         display: flex;
@@ -232,6 +250,20 @@
         padding-left: 18px;
       }
 
+      .path-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .path-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--soft);
+        padding: 14px;
+      }
+
       @media (max-width: 720px) {
         body {
           font-size: 14px;
@@ -263,6 +295,13 @@
   </head>
   <body>
     <main>
+      <nav class="page-nav" aria-label="Navegacion de datos abiertos">
+        <a href="./">App</a>
+        <a href="./datos-abiertos-ayudave.html">Datos abiertos</a>
+        <a href="./api-ayudave.html">API legible</a>
+        <a href="./estado-tecnico-ayudave.html">Estado</a>
+        <a href="./fuentes-ayudave.html">Fuentes</a>
+      </nav>
       <section class="hero">
         <h1>Datos abiertos AyudaVE</h1>
         <p>
@@ -274,15 +313,27 @@
           mostrarse con atribucion y revalidarse antes de mover recursos.
         </p>
         <div class="hero-actions">
-          <a class="button-link" href="./api.php?action=export_public">Abrir feed JSON</a>
-          <a class="button-link secondary" href="./api-ayudave.html">API legible</a>
+          <a class="button-link" href="./api-ayudave.html">Ver API legible</a>
           <a class="button-link secondary" href="./estado-tecnico-ayudave.html">Estado tecnico</a>
           <a class="button-link secondary" href="./fuentes-ayudave.html">Fuentes</a>
+          <a class="button-link secondary" href="./api.php?action=export_public">Descargar feed JSON</a>
         </div>
       </section>
 
       <section class="warning">
         <h2>Como recibir nuestra informacion</h2>
+        <div class="path-grid">
+          <article class="path-card">
+            <h3>Si coordinas ayuda</h3>
+            <p>Usa las vistas legibles para revisar fuentes, estado y criterio de validacion antes de mover recursos.</p>
+            <a href="./estado-tecnico-ayudave.html">Ver estado operativo</a>
+          </article>
+          <article class="path-card">
+            <h3>Si integras sistemas</h3>
+            <p>Consume el feed JSON, guarda la fecha de ultima actualizacion y usa sincronizacion incremental.</p>
+            <a href="./api-ayudave.html">Ver endpoints explicados</a>
+          </article>
+        </div>
         <ol class="steps">
           <li>Consume <code>api.php?action=export_public</code> para obtener el snapshot publico completo.</li>
           <li>Guarda el campo <code>generatedAt</code> o el mayor <code>updatedAt</code> recibido.</li>
@@ -360,7 +411,7 @@
       </section>
 
       <section>
-        <h2>Contratos y respuesta</h2>
+        <h2>Vistas legibles y contratos tecnicos</h2>
         <div class="schema-grid">
           <article>
             <h3>JSON Schema</h3>

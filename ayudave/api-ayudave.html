@@ -38,6 +38,8 @@
       a { color: var(--teal); font-weight: 800; text-decoration-thickness: 2px; text-underline-offset: 3px; }
       code { overflow-wrap: anywhere; border-radius: 4px; background: #e7f3f6; color: #113a43; padding: 2px 5px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92em; }
       .hero { display: grid; gap: 12px; }
+      .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+      .page-nav a { display: inline-flex; min-height: 34px; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 0 12px; text-decoration: none; }
       .actions { display: flex; flex-wrap: wrap; gap: 10px; }
       .button-link { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border: 1px solid var(--teal); border-radius: 6px; background: var(--teal); color: #fff; padding: 0 14px; text-decoration: none; }
       .button-link.secondary { background: #fff; color: var(--teal); }
@@ -51,6 +53,10 @@
       .params { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
       .param { border: 1px solid var(--line); border-radius: 999px; background: #fff; padding: 3px 8px; color: var(--teal-dark); font-size: .85rem; font-weight: 800; }
       .schema-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+      .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+      .action-card { border: 1px solid var(--line); border-radius: 8px; background: var(--soft); padding: 14px; }
+      .action-card ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); }
+      .action-card .button-link { margin-top: 8px; min-height: 32px; }
       .notice { border-color: var(--warn-line); background: var(--warn); }
       .status { min-height: 22px; color: var(--muted); font-weight: 800; }
       @media (max-width: 720px) {
@@ -62,6 +68,13 @@
   </head>
   <body>
     <main>
+      <nav class="page-nav" aria-label="Navegacion de API">
+        <a href="./">App</a>
+        <a href="./datos-abiertos-ayudave.html">Datos abiertos</a>
+        <a href="./api-ayudave.html">API legible</a>
+        <a href="./estado-tecnico-ayudave.html">Estado</a>
+        <a href="./fuentes-ayudave.html">Fuentes</a>
+      </nav>
       <section class="hero">
         <h1>API AyudaVE</h1>
         <p>
@@ -70,7 +83,8 @@
         </p>
         <div class="actions">
           <a class="button-link" href="./datos-abiertos-ayudave.html">Volver a datos abiertos</a>
-          <a class="button-link secondary" href="./openapi.json">Ver OpenAPI JSON</a>
+          <a class="button-link secondary" href="#acciones">Ver acciones utiles</a>
+          <a class="button-link secondary" href="./openapi.json">Descargar OpenAPI JSON</a>
           <a class="button-link secondary" href="./ayudave-public-export.schema.json">Ver JSON Schema</a>
         </div>
       </section>
@@ -83,7 +97,12 @@
       </section>
 
       <section>
-        <h2>Endpoints</h2>
+        <h2 id="acciones">Acciones principales</h2>
+        <div class="action-grid" id="actions"></div>
+      </section>
+
+      <section>
+        <h2>Contrato OpenAPI</h2>
         <div class="status" id="status">Leyendo openapi.json...</div>
         <div class="endpoint-list" id="endpoints"></div>
       </section>
@@ -106,6 +125,52 @@
       const schemaRoot = document.getElementById("schemas");
       const summaryRoot = document.getElementById("summary");
       const statusRoot = document.getElementById("status");
+      const actionRoot = document.getElementById("actions");
+
+      const actionDocs = [
+        {
+          title: "Feed publico completo",
+          action: "export_public",
+          href: "./api.php?action=export_public",
+          purpose: "Snapshot publicable con reportes, puntos de ayuda y metadatos.",
+          params: ["since o updated_since para sincronizacion incremental"],
+        },
+        {
+          title: "Estado de sincronizacion",
+          action: "sync_status",
+          href: "./estado-tecnico-ayudave.html",
+          purpose: "Vista legible de cron, fuentes, conteos y ultima actualizacion.",
+          params: ["JSON tecnico disponible en api.php?action=sync_status"],
+        },
+        {
+          title: "Metadata",
+          action: "metadata",
+          href: "./api.php?action=metadata",
+          purpose: "Catalogos de tipos, estados, niveles de confianza y fuentes.",
+          params: ["Sin parametros obligatorios"],
+        },
+        {
+          title: "Personas",
+          action: "people",
+          href: "./api.php?action=people&limit=300&offset=0",
+          purpose: "Casos reducidos, paginados y sin cedulas ni contactos privados.",
+          params: ["limit", "offset", "status", "q"],
+        },
+        {
+          title: "Metricas agregadas de personas",
+          action: "external_metrics",
+          href: "./api.php?action=external_metrics",
+          purpose: "Conteos agregados de fuentes externas sin importar fichas al mapa.",
+          params: ["Sin datos personales directos"],
+        },
+        {
+          title: "CSV",
+          action: "export_csv",
+          href: "./api.php?action=export_csv&dataset=helpPoints",
+          purpose: "Descarga simple para hojas de calculo.",
+          params: ["dataset=reports", "dataset=helpPoints", "dataset=missingPeople"],
+        },
+      ];
 
       function text(value, fallback = "Sin descripcion") {
         return String(value || fallback);
@@ -159,6 +224,22 @@
         statusRoot.textContent = "Contrato cargado correctamente.";
       }
 
+      function renderActions() {
+        actionRoot.innerHTML = actionDocs
+          .map((item) => `
+            <article class="action-card">
+              <h3>${item.title}</h3>
+              <p><code>action=${item.action}</code></p>
+              <p>${item.purpose}</p>
+              <ul>${item.params.map((param) => `<li>${param}</li>`).join("")}</ul>
+              <a class="button-link secondary" href="${item.href}">Abrir</a>
+            </article>
+          `)
+          .join("");
+      }
+
+      renderActions();
+
       fetch("./openapi.json", { cache: "no-store" })
         .then((res) => {
           if (!res.ok) throw new Error("No se pudo leer openapi.json");
@@ -172,10 +253,15 @@
               <span class="method">GET</span>
               <div>
                 <h3><code>/api.php?action=export_public</code></h3>
-                <p>Feed JSON publico para sincronizar reportes y puntos de ayuda.</p>
+                <p>Feed JSON publico para sincronizar reportes y puntos de ayuda. Tambien puedes usar las tarjetas de acciones de arriba.</p>
+                <div class="actions">
+                  <a class="button-link secondary" href="./datos-abiertos-ayudave.html">Datos abiertos</a>
+                  <a class="button-link secondary" href="./ayudave-public-export.schema.json">JSON Schema</a>
+                </div>
               </div>
             </article>
           `;
+          schemaRoot.innerHTML = '<article class="schema-card"><h3>Contrato no cargado</h3><p>Revisa openapi.json o usa las acciones principales documentadas en esta pagina.</p></article>';
         });
     </script>
   </body>

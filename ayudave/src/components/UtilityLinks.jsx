@@ -91,23 +91,28 @@ export function UtilityLinks({ onNavigate, t }) {
               <li key={source}>{source}</li>
             ))}
           </ul>
+          <span className="utility-popover-label">Para personas</span>
           <div className="utility-popover-actions">
             <a href="./fuentes-ayudave.html">
               {t.utility.sourcesJson}
             </a>
-            <a href="./api.php?action=metadata" rel="noreferrer" target="_blank">
-              {t.utility.metadata}
-            </a>
             <a href="./estado-tecnico-ayudave.html">
               {t.utility.syncStatus}
             </a>
+            <a href="./datos-abiertos-ayudave.html">
+              {t.utility.export}
+            </a>
           </div>
+          <span className="utility-popover-label">Para integraciones</span>
           <div className="utility-popover-actions api-actions" aria-label="Endpoints publicos">
+            <a href="./api-ayudave.html">
+              API legible
+            </a>
+            <a href="./api.php?action=metadata" rel="noreferrer" target="_blank">
+              {t.utility.metadata}
+            </a>
             <a href="./api.php?action=export_public" rel="noreferrer" target="_blank">
               Feed JSON
-            </a>
-            <a href="./api-ayudave.html">
-              OpenAPI
             </a>
             <a href="./ayudave-public-export.schema.json" rel="noreferrer" target="_blank">
               JSON Schema

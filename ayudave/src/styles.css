@@ -1952,6 +1952,10 @@
     @apply my-2 text-xs leading-normal text-[#58676d];
   }
 
+  .utility-popover-label {
+    @apply mt-3 block text-[0.68rem] font-black uppercase tracking-normal text-[#58676d];
+  }
+
   .utility-popover ul {
     @apply m-0 grid max-h-[260px] list-none gap-1 overflow-auto p-0 text-xs font-bold text-ayuda-teal-dark;
   }
@@ -3323,9 +3327,9 @@
 
   .utility-links {
     grid-column: 1 / -1;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-start;
-    overflow-x: auto;
+    overflow-x: visible;
     padding-bottom: 2px;
     scrollbar-width: none;
   }
@@ -3336,7 +3340,7 @@
 
   .utility-links button,
   .utility-links a {
-    flex: 0 0 auto;
+    flex: 1 1 calc(50% - 8px);
     justify-content: center;
     min-width: 0;
     min-height: 44px;

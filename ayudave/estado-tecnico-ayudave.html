@@ -36,6 +36,8 @@
       h3 { margin: 0 0 6px; font-size: 1rem; }
       p { margin: 0 0 12px; color: var(--muted); }
       a { color: var(--teal); font-weight: 800; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+      .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+      .page-nav a { display: inline-flex; min-height: 34px; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 0 12px; text-decoration: none; }
       .actions { display: flex; flex-wrap: wrap; gap: 10px; }
       .button-link { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border: 1px solid var(--teal); border-radius: 6px; background: var(--teal); color: #fff; padding: 0 14px; text-decoration: none; }
       .button-link.secondary { background: #fff; color: var(--teal); }
@@ -60,6 +62,13 @@
   </head>
   <body>
     <main>
+      <nav class="page-nav" aria-label="Navegacion de estado">
+        <a href="./">App</a>
+        <a href="./datos-abiertos-ayudave.html">Datos abiertos</a>
+        <a href="./api-ayudave.html">API legible</a>
+        <a href="./estado-tecnico-ayudave.html">Estado</a>
+        <a href="./fuentes-ayudave.html">Fuentes</a>
+      </nav>
       <section>
         <h1>Estado tecnico AyudaVE</h1>
         <p>
@@ -68,7 +77,6 @@
         </p>
         <div class="actions">
           <a class="button-link" href="./datos-abiertos-ayudave.html">Volver a datos abiertos</a>
-          <a class="button-link secondary" href="./api.php?action=sync_status">Ver JSON tecnico</a>
           <a class="button-link secondary" href="./fuentes-ayudave.html">Ver fuentes</a>
         </div>
       </section>
@@ -91,6 +99,7 @@
           "A validar" significa que la fuente externa esta visible para contraste, pero requiere confirmacion local
           antes de mover recursos. "Confirmados" indica validacion de origen o seguimiento comunitario.
         </p>
+        <p><a href="./api.php?action=sync_status">Respuesta tecnica JSON</a> para integraciones y monitoreo automatico.</p>
       </section>
     </main>
     <script>
@@ -110,6 +119,17 @@
         return '<span class="badge warn">Sin dato</span>';
       }
 
+      function sourceFreshness(source) {
+        const value = source.lastSyncedAt || source.lastUpdatedAt;
+        if (!value) return { label: "Sin fecha", className: "warn" };
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return { label: "Fecha no valida", className: "warn" };
+        const hours = (Date.now() - date.getTime()) / 36e5;
+        if (hours <= 24) return { label: "Fresca", className: "ok" };
+        if (hours <= 72) return { label: "Vigilar", className: "warn" };
+        return { label: "Desactualizada", className: "bad" };
+      }
+
       function renderStatus(data) {
         const sources = Array.isArray(data.sources) ? data.sources : [];
         const cronOk = data.cron?.lastOk ?? null;
@@ -120,22 +140,26 @@
           <article class="metric"><strong>${sources.length}</strong><span>Fuentes</span></article>
           <article class="metric"><strong>${pending}</strong><span>A validar</span></article>
           <article class="metric"><strong>${confirmed}</strong><span>Confirmados</span></article>
-          <article class="metric"><strong>${data.database ? "Activa" : "No"}</strong><span>Base de datos</span></article>
-          <article class="metric"><strong>${cronOk === true ? "Activo" : "Revisar"}</strong><span>Cron</span></article>
+          <article class="metric"><strong>${data.database ? "Disponibles" : "Revisar"}</strong><span>Datos</span></article>
+          <article class="metric"><strong>${cronOk === true ? "Automatica" : "Revisar"}</strong><span>Actualizacion</span></article>
+          <article class="metric"><strong>${fmtDate(data.lastSyncedAt || data.generatedAt)}</strong><span>Ultima sincronizacion</span></article>
         `;
         sourcesRoot.innerHTML = sources.length
-          ? sources.map((source) => `
-              <article class="source-card">
-                <h3>${source.source || "Fuente"}</h3>
-                <p>${source.category || "Sin categoria"} · ${fmtDate(source.lastSyncedAt || source.lastUpdatedAt)}</p>
-                ${badge((source.total || 0) >= 0)}
-                <dl>
-                  <div><dt>Total</dt><dd>${source.total ?? 0}</dd></div>
-                  <div><dt>A validar</dt><dd>${source.pending ?? 0}</dd></div>
-                  <div><dt>Confirmados</dt><dd>${source.confirmed ?? 0}</dd></div>
-                </dl>
-              </article>
-            `).join("")
+          ? sources.map((source) => {
+              const freshness = sourceFreshness(source);
+              return `
+                <article class="source-card">
+                  <h3>${source.source || "Fuente"}</h3>
+                  <p>${source.category || "Sin categoria"} · ${fmtDate(source.lastSyncedAt || source.lastUpdatedAt)}</p>
+                  <span class="badge ${freshness.className}">${freshness.label}</span>
+                  <dl>
+                    <div><dt>Total</dt><dd>${source.total ?? 0}</dd></div>
+                    <div><dt>A validar</dt><dd>${source.pending ?? 0}</dd></div>
+                    <div><dt>Confirmados</dt><dd>${source.confirmed ?? 0}</dd></div>
+                  </dl>
+                </article>
+              `;
+            }).join("")
           : '<article class="source-card"><h3>Sin fuentes</h3><p>No hay fuentes externas reportadas por el servidor.</p></article>';
       }
 
