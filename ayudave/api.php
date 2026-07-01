@@ -372,8 +372,24 @@ function normalize_external_people_metrics(array $payload): array
 function public_external_metrics(): array
 {
     $sourceUrl = 'https://desaparecidosterremotovenezuela.com/';
-    $apiUrl = 'https://desaparecidos-terremoto-api.theempire.tech/api/metricas';
-    $payload = http_get_json($apiUrl);
+    $apiUrls = [
+        'https://desaparecidos-terremoto-api.theempire.tech/api/metricas',
+        'http://desaparecidos-terremoto-api.theempire.tech/api/metricas',
+    ];
+    $payload = null;
+    $apiUrl = $apiUrls[0];
+    foreach ($apiUrls as $candidateUrl) {
+        try {
+            $payload = http_get_json($candidateUrl);
+            $apiUrl = $candidateUrl;
+            break;
+        } catch (Throwable $error) {
+            error_log('AyudaVE external metrics candidate failed: ' . $candidateUrl . ' ' . $error->getMessage());
+        }
+    }
+    if (!is_array($payload)) {
+        throw new RuntimeException('No se pudieron leer metricas externas.');
+    }
     return [
         'ok' => true,
         'schema' => 'ayudave-external-metrics-v1',
@@ -1563,10 +1579,32 @@ function http_get_text(string $url): string
         ],
     ]);
     $body = @file_get_contents($url, false, $context);
-    if ($body === false) {
-        throw new RuntimeException('No se pudo leer fuente externa.');
+    if ($body !== false) {
+        return $body;
     }
-    return $body;
+
+    if (function_exists('curl_init')) {
+        $curl = curl_init($url);
+        if ($curl !== false) {
+            curl_setopt_array($curl, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_CONNECTTIMEOUT => 8,
+                CURLOPT_TIMEOUT => 12,
+                CURLOPT_HTTPHEADER => ['Accept: application/json,text/plain,*/*', 'User-Agent: AyudaVE/1.0'],
+            ]);
+            $curlBody = curl_exec($curl);
+            $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+            $curlError = curl_error($curl);
+            curl_close($curl);
+            if (is_string($curlBody) && $curlBody !== '' && $status >= 200 && $status < 300) {
+                return $curlBody;
+            }
+            error_log('AyudaVE curl source failed: status=' . $status . ' error=' . $curlError);
+        }
+    }
+
+    throw new RuntimeException('No se pudo leer fuente externa.');
 }
 
 function http_get_json(string $url): array
