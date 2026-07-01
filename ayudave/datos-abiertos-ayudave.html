@@ -6,24 +6,249 @@
     <title>Datos abiertos AyudaVE | API de ayuda Venezuela</title>
     <meta
       name="description"
-      content="Feed publico de AyudaVE para sincronizar reportes, refugios, centros de acopio y puntos de ayuda en Venezuela."
+      content="API publica de AyudaVE para recibir y sincronizar reportes, refugios, centros de acopio, puntos de ayuda y datos reducidos de personas."
     />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://ayudave.mranalytics.info/datos-abiertos-ayudave.html" />
-    <link rel="alternate" type="application/json" href="https://ayudave.mranalytics.info/api.php?action=export_public" title="AyudaVE public JSON feed" />
+    <link
+      rel="alternate"
+      type="application/json"
+      href="https://ayudave.mranalytics.info/api.php?action=export_public"
+      title="AyudaVE public JSON feed"
+    />
     <link rel="service-desc" type="application/openapi+json" href="https://ayudave.mranalytics.info/openapi.json" />
     <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
     <style>
-      body { margin: 0; font-family: Inter, "Segoe UI", Arial, sans-serif; color: #18292e; background: #eef4f6; }
-      main { max-width: 920px; margin: 0 auto; padding: 42px 20px; }
-      section { background: #fff; border: 1px solid #d8e2e6; border-radius: 8px; padding: 24px; margin-bottom: 18px; }
-      h1, h2 { color: #00576a; }
-      h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; margin: 0 0 14px; }
-      code { background: #eef4f6; padding: 2px 5px; border-radius: 4px; }
-      pre { overflow: auto; background: #102a31; color: #e8fbff; padding: 16px; border-radius: 6px; }
-      a { color: #006f85; font-weight: 700; }
-      ul { padding-left: 20px; }
-      li { margin: 8px 0; }
+      :root {
+        color-scheme: light;
+        --bg: #eef4f6;
+        --surface: #ffffff;
+        --line: #d8e2e6;
+        --text: #18292e;
+        --muted: #58676d;
+        --teal: #006f85;
+        --teal-dark: #00576a;
+        --soft: #f6fbfc;
+        --warn: #fff7df;
+        --warn-line: #f0d28b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.55 Inter, "Segoe UI", Arial, sans-serif;
+        letter-spacing: 0;
+      }
+
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px 18px 44px;
+      }
+
+      section {
+        margin-bottom: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        padding: 22px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: var(--teal-dark);
+        line-height: 1.12;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(1.7rem, 3vw, 2.45rem);
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 1.25rem;
+      }
+
+      h3 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      a {
+        color: var(--teal);
+        font-weight: 800;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
+      }
+
+      code,
+      pre {
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      }
+
+      code {
+        overflow-wrap: anywhere;
+        border-radius: 4px;
+        background: #e7f3f6;
+        color: #113a43;
+        padding: 2px 5px;
+        font-size: 0.92em;
+      }
+
+      pre {
+        overflow: auto;
+        margin: 10px 0 0;
+        border-radius: 6px;
+        background: #102a31;
+        color: #e8fbff;
+        padding: 14px;
+        font-size: 0.93rem;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      pre code {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        font-size: inherit;
+      }
+
+      .hero {
+        display: grid;
+        gap: 12px;
+      }
+
+      .hero-actions,
+      .quick-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .button-link {
+        display: inline-flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--teal);
+        border-radius: 6px;
+        background: var(--teal);
+        color: #ffffff;
+        padding: 0 14px;
+        text-decoration: none;
+      }
+
+      .button-link.secondary {
+        background: #ffffff;
+        color: var(--teal);
+      }
+
+      .endpoint-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .endpoint-card {
+        display: grid;
+        grid-template-columns: 116px minmax(0, 1fr);
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--soft);
+        padding: 14px;
+      }
+
+      .method {
+        display: inline-flex;
+        width: fit-content;
+        min-height: 30px;
+        align-items: center;
+        border-radius: 5px;
+        background: #e7f5f8;
+        color: var(--teal);
+        padding: 0 10px;
+        font-weight: 900;
+      }
+
+      .endpoint-meta {
+        display: grid;
+        gap: 4px;
+      }
+
+      .endpoint-purpose {
+        color: var(--muted);
+      }
+
+      .param-list {
+        margin: 8px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+      }
+
+      .warning {
+        border-color: var(--warn-line);
+        background: var(--warn);
+      }
+
+      .steps {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .steps li {
+        padding-left: 4px;
+      }
+
+      .schema-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+      }
+
+      .schema-grid article {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--soft);
+        padding: 12px;
+      }
+
+      .status-list {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          font-size: 14px;
+        }
+
+        main {
+          padding: 18px 10px 32px;
+        }
+
+        section {
+          padding: 16px;
+        }
+
+        .endpoint-card {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
     <script type="application/ld+json">
       {
@@ -38,77 +263,126 @@
   </head>
   <body>
     <main>
-      <section>
+      <section class="hero">
         <h1>Datos abiertos AyudaVE</h1>
         <p>
-          AyudaVE publica un feed JSON para sincronizar reportes comunitarios,
-          refugios, centros de acopio y puntos de ayuda en Venezuela.
+          AyudaVE publica endpoints publicos para recibir y sincronizar reportes comunitarios,
+          refugios, centros de acopio, puntos de ayuda y datos reducidos de personas.
         </p>
-        <p><a href="./api.php?action=export_public">Abrir feed publico</a></p>
+        <p>
+          Los feeds excluyen contactos privados, secretos, cedulas y datos sensibles. Toda informacion externa debe
+          mostrarse con atribucion y revalidarse antes de mover recursos.
+        </p>
+        <div class="hero-actions">
+          <a class="button-link" href="./api.php?action=export_public">Abrir feed JSON</a>
+          <a class="button-link secondary" href="./openapi.json">OpenAPI</a>
+          <a class="button-link secondary" href="./api.php?action=sync_status">Estado tecnico</a>
+        </div>
       </section>
+
+      <section class="warning">
+        <h2>Como recibir nuestra informacion</h2>
+        <ol class="steps">
+          <li>Consume <code>api.php?action=export_public</code> para obtener el snapshot publico completo.</li>
+          <li>Guarda el campo <code>generatedAt</code> o el mayor <code>updatedAt</code> recibido.</li>
+          <li>En la siguiente llamada usa <code>since</code> o <code>updated_since</code> para bajar solo cambios.</li>
+          <li>Consulta <code>sync_status</code> para saber si una fuente esta fresca, desactualizada o con error.</li>
+          <li>Si replicas datos, muestra "AyudaVE" y la fuente original. No uses registros sin validar para movilizar recursos.</li>
+        </ol>
+        <pre><code>GET https://ayudave.mranalytics.info/api.php?action=export_public&amp;since=2026-06-28T00:00:00Z</code></pre>
+      </section>
+
       <section>
-        <h2>Endpoint</h2>
-        <pre><code>GET https://ayudave.mranalytics.info/api.php?action=export_public</code></pre>
-        <p>
-          Sincronizacion incremental:
-          <code>api.php?action=export_public&amp;since=2026-06-28T00:00:00Z</code>
-          devuelve solo registros modificados desde esa fecha ISO 8601. Tambien acepta <code>updated_since</code>.
-        </p>
-        <p>
-          Metadata para integraciones:
-          <a href="./api.php?action=metadata">api.php?action=metadata</a>
-        </p>
-        <p>
-          Estado de sincronizacion:
-          <a href="./api.php?action=sync_status">api.php?action=sync_status</a>
-        </p>
-        <p>
-          Personas desaparecidas/localizadas con paginacion y filtros:
-          <a href="./api.php?action=people&amp;limit=300&amp;offset=0">api.php?action=people</a>
-        </p>
-        <p>
-          Metricas externas agregadas de personas:
-          <a href="./api.php?action=external_metrics">api.php?action=external_metrics</a>
-        </p>
-        <p>
-          El feed excluye contactos personales y secretos. Incluye tipo, area, ciudad,
-          prioridad, estado, nivel de confianza, coordenadas, fuente, URL de fuente e identificador externo.
-        </p>
-        <p>
-          Contrato JSON Schema:
-          <a href="./ayudave-public-export.schema.json">ayudave-public-export.schema.json</a>
-        </p>
-        <p>
-          Contrato OpenAPI:
-          <a href="./openapi.json">openapi.json</a>
-        </p>
-        <p>
-          Descargas CSV:
-          <a href="./api.php?action=export_csv&amp;dataset=reports">reportes</a> ·
-          <a href="./api.php?action=export_csv&amp;dataset=helpPoints">puntos de ayuda</a> ·
-          <a href="./api.php?action=export_csv&amp;dataset=missingPeople">personas</a>
-        </p>
+        <h2>Endpoints publicos</h2>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <span class="method">GET</span>
+            <div class="endpoint-meta">
+              <h3><a href="./api.php?action=export_public">/api.php?action=export_public</a></h3>
+              <p class="endpoint-purpose">Snapshot JSON principal con reportes y puntos de ayuda publicables.</p>
+              <ul class="param-list">
+                <li><code>since</code> o <code>updated_since</code>: fecha ISO 8601 para sincronizacion incremental.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="endpoint-card">
+            <span class="method">GET</span>
+            <div class="endpoint-meta">
+              <h3><a href="./api.php?action=sync_status">/api.php?action=sync_status</a></h3>
+              <p class="endpoint-purpose">Estado de base de datos, ultimas sincronizaciones, fuentes y conteos.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-card">
+            <span class="method">GET</span>
+            <div class="endpoint-meta">
+              <h3><a href="./api.php?action=metadata">/api.php?action=metadata</a></h3>
+              <p class="endpoint-purpose">Catalogos de tipos, estados, niveles de confianza y fuentes disponibles.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-card">
+            <span class="method">GET</span>
+            <div class="endpoint-meta">
+              <h3><a href="./api.php?action=people&amp;limit=300&amp;offset=0">/api.php?action=people</a></h3>
+              <p class="endpoint-purpose">Personas desaparecidas/localizadas en modo reducido y paginado.</p>
+              <ul class="param-list">
+                <li><code>limit</code>: maximo de registros por pagina.</li>
+                <li><code>offset</code>: desplazamiento para paginar.</li>
+                <li><code>status</code> y <code>q</code>: filtros opcionales.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="endpoint-card">
+            <span class="method">GET</span>
+            <div class="endpoint-meta">
+              <h3><a href="./api.php?action=external_metrics">/api.php?action=external_metrics</a></h3>
+              <p class="endpoint-purpose">Metricas agregadas externas de personas. No importa fichas personales en el mapa.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-card">
+            <span class="method">GET</span>
+            <div class="endpoint-meta">
+              <h3>/api.php?action=export_csv&amp;dataset=...</h3>
+              <p class="endpoint-purpose">Descargas CSV para hojas de calculo o procesos simples.</p>
+              <div class="quick-links">
+                <a href="./api.php?action=export_csv&amp;dataset=reports">reportes</a>
+                <a href="./api.php?action=export_csv&amp;dataset=helpPoints">puntos de ayuda</a>
+                <a href="./api.php?action=export_csv&amp;dataset=missingPeople">personas</a>
+              </div>
+            </div>
+          </article>
+        </div>
       </section>
+
       <section>
-        <h2>Estados de validacion</h2>
-        <ul>
-          <li><strong>Sin validar:</strong> usar para visibilidad inicial, no para movilizar recursos sin confirmar.</li>
-          <li><strong>Confirmado:</strong> validado por fuente externa o seguimiento comunitario.</li>
-          <li><strong>Resuelto:</strong> necesidad atendida o ya no activa.</li>
-          <li><strong>Abierto:</strong> punto operativo informado por fuente externa.</li>
-        </ul>
-        <h2>Niveles de confianza</h2>
-        <ul>
-          <li><strong>verified_origin:</strong> dato confirmado por su fuente original.</li>
-          <li><strong>external_pending:</strong> dato de fuente externa que debe validarse localmente.</li>
-          <li><strong>community_confirmed:</strong> dato confirmado por moderacion o seguimiento comunitario.</li>
-          <li><strong>community_pending:</strong> dato comunitario recibido, pendiente de validacion.</li>
-          <li><strong>resolved:</strong> dato marcado como resuelto.</li>
-        </ul>
+        <h2>Contratos y respuesta</h2>
+        <div class="schema-grid">
+          <article>
+            <h3>JSON Schema</h3>
+            <p>Contrato del feed publico para validadores y procesos ETL.</p>
+            <a href="./ayudave-public-export.schema.json">ayudave-public-export.schema.json</a>
+          </article>
+          <article>
+            <h3>OpenAPI</h3>
+            <p>Descripcion tecnica de endpoints, parametros y formatos.</p>
+            <a href="./openapi.json">openapi.json</a>
+          </article>
+          <article>
+            <h3>Fuentes</h3>
+            <p>Lista de fuentes externas revisadas o sincronizadas.</p>
+            <a href="./sources.json">sources.json</a>
+          </article>
+        </div>
       </section>
+
       <section>
         <h2>Ejemplo de consumo</h2>
-        <pre><code>const res = await fetch("https://ayudave.mranalytics.info/api.php?action=export_public");
+        <pre><code>const url = "https://ayudave.mranalytics.info/api.php?action=export_public";
+const res = await fetch(url);
 const data = await res.json();
 
 const puntosConfiables = data.helpPoints.filter((punto) =>
@@ -116,16 +390,18 @@ const puntosConfiables = data.helpPoints.filter((punto) =>
 );
 
 const reportesActivos = data.reports.filter((reporte) =>
-  reporte.status !== "Resuelto" && reporte.lat && reporte.lng
+  reporte.status !== "Resuelto" &amp;&amp; reporte.lat &amp;&amp; reporte.lng
 );</code></pre>
-        <p>
-          Si replicas datos, muestra atribucion a AyudaVE y a la fuente original.
-          Revalida condiciones antes de mover recursos.
-        </p>
       </section>
+
       <section>
-        <h2>Fuentes</h2>
-        <p>Consulta <a href="./sources.json">sources.json</a> para ver las fuentes sincronizadas.</p>
+        <h2>Estados de validacion</h2>
+        <ul class="status-list">
+          <li><strong>Sin validar:</strong> visible para coordinar confirmacion, no para movilizar recursos sin revisar.</li>
+          <li><strong>Confirmado:</strong> validado por fuente externa o seguimiento comunitario.</li>
+          <li><strong>Resuelto:</strong> necesidad atendida o ya no activa.</li>
+          <li><strong>Abierto:</strong> punto operativo informado por fuente externa.</li>
+        </ul>
       </section>
     </main>
   </body>

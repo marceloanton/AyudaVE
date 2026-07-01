@@ -102,6 +102,20 @@ export function UtilityLinks({ onNavigate, t }) {
               {t.utility.syncStatus}
             </a>
           </div>
+          <div className="utility-popover-actions api-actions" aria-label="Endpoints publicos">
+            <a href="./api.php?action=export_public" rel="noreferrer" target="_blank">
+              Feed JSON
+            </a>
+            <a href="./openapi.json" rel="noreferrer" target="_blank">
+              OpenAPI
+            </a>
+            <a href="./ayudave-public-export.schema.json" rel="noreferrer" target="_blank">
+              JSON Schema
+            </a>
+            <a href="./api.php?action=export_csv&amp;dataset=helpPoints" rel="noreferrer" target="_blank">
+              CSV puntos
+            </a>
+          </div>
         </div>
       ) : null}
     </div>
