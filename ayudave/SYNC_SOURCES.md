@@ -11,6 +11,7 @@ defecto las fuentes con cedulas, telefonos, fotos o datos de menores.
 
 | Fuente | URL tecnica | Datos | Conteo probado | Uso recomendado |
 | --- | --- | --- | --- | --- |
+| venezuelareporta.org/recursos | Pagina publica | Telefonos de emergencia, ambulancias, proteccion civil, bomberos, policia, rescate, hospitales y centros de acopio | Directorio extenso en web publica | Registrar como directorio manual. Confirmar antes de actuar; no importar telefonos personales sin validacion. |
 | terremotovenezuela.app | `https://terremotovenezuela.app/api/missing?status=all` | Personas desaparecidas/encontradas | 48 personas | Importar como reportes externos, ocultando contacto privado. |
 | terremotovenezuela.app | `https://terremotovenezuela.app/api/reports` | Reportes de mapa: desaparecidos, edificios, criticos, energia, refugio, insumos | 143 reportes | Mapear a necesidades AyudaVE y marcar fuente externa. |
 | terremotovenezuela.com | Supabase REST `buildings` | Edificios danados | 853 edificios | Importar como reportes tipo refugio/seguridad estructural, con severidad. |
@@ -18,7 +19,6 @@ defecto las fuentes con cedulas, telefonos, fotos o datos de menores.
 | centrosdeacopiove.com | `https://centrosdeacopiove.com/data/phones_v2.js?v=8` | Telefonos de emergencia | No contado | Mostrar como directorio, no mezclar con reportes. |
 | centrosdeacopiove.com | `https://centrosdeacopiove.com/voluntarios-proxy.php` | Voluntarios | 1000 voluntarios | No publicar contactos personales. Usar solo para derivacion privada/admin. |
 | acopios-refugios.vercel.app | Apps Script JSONP | Acopios y refugios moderados | 203 puntos: 174 acopios, 29 refugios | Importar como puntos de ayuda. Respeta columnas publicas del origen. |
-| ayuda-venezuela.talosware.com.ve | Google Sheet CSV | Centros/puntos de ayuda | 144 filas | Importar como puntos de ayuda, deduplicando contra centrosdeacopiove. |
 | acopiove.org | Sitio/API a revisar | Acopios, refugios y techo solidario | No contado en esta pasada | Candidato para puntos de ayuda regionales. Activar solo despues de confirmar API/licencia. |
 | ayuda-venezuela.talosware.com.ve | Web publica / Google Sheet CSV | Acopios, voluntarios, servicios, canales y listados | 163 centros, 11 profesionales, 23 estados, 5 paises en web publica | Importar solo puntos publicos y deduplicar. No copiar contactos personales ni personas/listados sin permiso. |
 | infovenezuelaterremoto2026.vercel.app/docs | API documentada a revisar | Centros de acopio | No contado en esta pasada | Candidato para sincronizar puntos publicos si la documentacion sigue operativa. |

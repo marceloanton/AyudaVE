@@ -74,6 +74,14 @@
       "privacy": "API publica con atribucion requerida. Los puntos se muestran como fuente externa y con validacion de origen cuando aplica."
     },
     {
+      "id": "venezuela_reporta_recursos",
+      "name": "Venezuela Reporta - Recursos y emergencias",
+      "url": "https://venezuelareporta.org/recursos",
+      "category": "emergency_directory",
+      "sync": "manual_reference",
+      "privacy": "Directorio de emergencia, hospitales y centros de acopio con telefonos e informacion cambiante. Enlazar y contrastar antes de publicar o llamar."
+    },
+    {
       "id": "venezuela_reporta_personas",
       "name": "Venezuela Reporta - Personas",
       "url": "https://venezuelareporta.org/api/v1/personas",

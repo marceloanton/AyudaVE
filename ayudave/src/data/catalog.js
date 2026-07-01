@@ -182,6 +182,13 @@ export const referenceSources = [
     sync: "Sincronizacion activa con reduccion de datos sensibles.",
   },
   {
+    name: "Venezuela Reporta - Recursos",
+    url: "https://venezuelareporta.org/recursos",
+    scope: "Emergencias, hospitales y acopios",
+    use: "Directorio operativo para llamadas, atencion medica y centros de acopio.",
+    sync: "Referencia manual; confirmar vigencia antes de actuar o republicar telefonos.",
+  },
+  {
     name: "Refugios Venezuela",
     url: "https://refugiosvenezuela.com/api",
     scope: "Refugios y puntos de apoyo",
