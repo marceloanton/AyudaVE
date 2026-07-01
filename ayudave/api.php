@@ -993,6 +993,38 @@ function db_read_sync_summary(PDO $pdo): array
     }, $stmt->fetchAll());
 }
 
+function db_read_missing_people_sync_summary(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        "SELECT
+            COALESCE(source, 'missing_people') AS source,
+            COUNT(*) AS total,
+            SUM(status = 'Buscando') AS pending,
+            SUM(status IN ('Localizado', 'Encontrado')) AS confirmed,
+            0 AS resolved,
+            MAX(synced_at) AS last_synced_at,
+            MAX(updated_at) AS last_updated_at
+         FROM missing_people
+         GROUP BY COALESCE(source, 'missing_people')
+         ORDER BY source ASC"
+    );
+
+    return array_map(static function (array $row): array {
+        $synced = isset($row['last_synced_at']) ? strtotime((string) $row['last_synced_at']) : false;
+        $updated = isset($row['last_updated_at']) ? strtotime((string) $row['last_updated_at']) : false;
+        return [
+            'source' => (string) $row['source'],
+            'category' => 'people',
+            'total' => (int) $row['total'],
+            'pending' => (int) $row['pending'],
+            'confirmed' => (int) $row['confirmed'],
+            'resolved' => (int) $row['resolved'],
+            'lastSyncedAt' => $synced ? date(DATE_ATOM, $synced) : null,
+            'lastUpdatedAt' => $updated ? date(DATE_ATOM, $updated) : null,
+        ];
+    }, $stmt->fetchAll());
+}
+
 function db_read_health(PDO $pdo): array
 {
     $counts = $pdo->query(
@@ -1014,6 +1046,9 @@ function db_read_health(PDO $pdo): array
     $updated = isset($counts['last_updated_at']) ? strtotime((string) $counts['last_updated_at']) : false;
     $synced = isset($counts['last_synced_at']) ? strtotime((string) $counts['last_synced_at']) : false;
     $peopleCounts = db_missing_people_counts($pdo);
+    $reportSources = array_map(static function (array $source): array {
+        return ['category' => 'reports'] + $source;
+    }, db_read_sync_summary($pdo));
     return [
         'database' => true,
         'total' => (int) ($counts['total'] ?? 0),
@@ -1028,7 +1063,7 @@ function db_read_health(PDO $pdo): array
         'lastUpdatedAt' => $updated ? date(DATE_ATOM, $updated) : null,
         'lastSyncedAt' => $synced ? date(DATE_ATOM, $synced) : null,
         'missingPeople' => $peopleCounts,
-        'sources' => db_read_sync_summary($pdo),
+        'sources' => array_merge($reportSources, db_read_missing_people_sync_summary($pdo)),
     ];
 }
 
@@ -2563,6 +2598,18 @@ function sync_external_sources(PDO $pdo, array $sources, array $externalApiKeys,
     }
 }
 
+function sync_results_failed_sources(array $results): array
+{
+    $failed = [];
+    foreach ($results as $source => $result) {
+        if (!is_array($result)) continue;
+        if (($result['ok'] ?? true) === false) {
+            $failed[] = (string) $source;
+        }
+    }
+    return $failed;
+}
+
 function require_admin(array $input, string $adminPin): void
 {
     ensure_admin_pin_configured($adminPin);
@@ -2771,10 +2818,12 @@ if ($action === 'cron_sync') {
     $sources = isset($input['sources']) && is_array($input['sources']) ? $input['sources'] : $syncSources;
     $useCursor = !array_key_exists('cursor', $input) || !empty($input['cursor']);
     $results = sync_external_sources($pdo, $sources, $externalApiKeys, $syncCursorFile, $useCursor);
-    $ok = !isset($results['_sync']['ok']) || $results['_sync']['ok'] !== false;
-    $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'sources' => $results];
-    write_cron_status($cronLogFile, 200, $ok, $payload);
-    respond(200, $payload);
+    $failedSources = sync_results_failed_sources($results);
+    $ok = count($failedSources) === 0;
+    $statusCode = $ok ? 200 : 207;
+    $payload = ['ok' => $ok, 'generatedAt' => date(DATE_ATOM), 'failedSources' => $failedSources, 'sources' => $results];
+    write_cron_status($cronLogFile, $statusCode, $ok, $payload);
+    respond($statusCode, $payload);
 }
 
 if ($action === 'admin_login') {

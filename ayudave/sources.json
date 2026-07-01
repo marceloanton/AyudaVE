@@ -9,6 +9,7 @@
   "metadata": "https://ayudave.mranalytics.info/api.php?action=metadata",
   "csv_reports": "https://ayudave.mranalytics.info/api.php?action=export_csv&dataset=reports",
   "csv_help_points": "https://ayudave.mranalytics.info/api.php?action=export_csv&dataset=helpPoints",
+  "csv_missing_people": "https://ayudave.mranalytics.info/api.php?action=export_csv&dataset=missingPeople",
   "schema": "https://ayudave.mranalytics.info/ayudave-public-export.schema.json",
   "trust_levels": {
     "verified_origin": "Dato confirmado por su fuente original.",

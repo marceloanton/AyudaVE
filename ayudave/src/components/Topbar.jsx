@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { languages } from "../lib/i18n";
 
-export function Topbar({ activeView, language, onViewChange, serverSyncAvailable, setLanguage, t }) {
+export function Topbar({ activeView, language, onViewChange, pendingCount = 0, serverSyncAvailable, setLanguage, t }) {
   const headerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const tabs = [
@@ -77,6 +77,11 @@ export function Topbar({ activeView, language, onViewChange, serverSyncAvailable
           <span>{serverSyncAvailable ? t.sync.synced : t.sync.offline}</span>
           <small>{serverSyncAvailable ? t.sync.active : t.sync.local}</small>
         </div>
+        {pendingCount > 0 ? (
+          <button className="pending-sync-badge" onClick={() => handleViewChange("reportar")} type="button">
+            {t.sync.pendingReports.replace("{count}", String(pendingCount))}
+          </button>
+        ) : null}
         <button
           aria-controls="mobile-nav-menu"
           aria-expanded={menuOpen}

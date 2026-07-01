@@ -15,6 +15,15 @@ function formatNumber(value) {
   return new Intl.NumberFormat("es-VE").format(Number(value || 0));
 }
 
+function safeDisplayName(person) {
+  const name = String(person.displayName || "").trim();
+  if (!name) return "Persona";
+  const parts = name.split(/\s+/).filter(Boolean);
+  const first = parts[0] || "Persona";
+  const initial = parts.length > 1 ? ` ${parts[1].slice(0, 1).toUpperCase()}.` : "";
+  return `${first}${initial}`;
+}
+
 export function PeopleView({ counts = null, externalMetrics = null, hasMore = false, isLoadingMore = false, onLoadMore, people = [], total = 0, t }) {
   const searching = counts?.searching ?? people.filter((person) => person.status === "Buscando").length;
   const localized = counts?.localized ?? people.filter((person) => person.status === "Localizado").length;
@@ -29,6 +38,7 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
     .replace("{updated}", formatDate(externalUpdatedAt) || t.people.externalUnknown);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("todos");
+  const [safeMode, setSafeMode] = useState(true);
   const filteredPeople = people.filter((person) => {
     const statusMatch = status === "todos" || person.status === status;
     const haystack = normalizeText(`${person.displayName} ${person.city} ${person.zone} ${person.lastSeen} ${person.description}`);
@@ -95,6 +105,20 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
           ))}
         </div>
       </div>
+      <div className="people-safe-mode">
+        <div>
+          <strong>{t.people.safeModeTitle}</strong>
+          <span>{t.people.safeModeBody}</span>
+        </div>
+        <button
+          aria-pressed={safeMode}
+          className={safeMode ? "is-active" : ""}
+          onClick={() => setSafeMode((value) => !value)}
+          type="button"
+        >
+          {safeMode ? t.people.safeModeOn : t.people.safeModeOff}
+        </button>
+      </div>
       <p className="people-privacy">{t.people.privacy}</p>
       {(query.trim() || status !== "todos") && hasMore ? (
         <p className="people-privacy">{t.people.localFilterNotice}</p>
@@ -133,11 +157,11 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
             <span>{t.people.emptyBody}</span>
           </article>
         ) : filteredPeople.map((person) => (
-          <article className="person-card" key={person.id}>
-            {person.photoUrl ? <img alt="" loading="lazy" src={person.photoUrl} /> : <div className="person-avatar">{person.displayName.slice(0, 1) || "P"}</div>}
+          <article className={`person-card ${safeMode ? "is-safe-mode" : ""}`} key={person.id}>
+            {!safeMode && person.photoUrl ? <img alt="" loading="lazy" src={person.photoUrl} /> : <div className="person-avatar">{person.displayName.slice(0, 1) || "P"}</div>}
             <div>
               <div className="person-title-row">
-                <h2>{person.displayName}</h2>
+                <h2>{safeMode ? safeDisplayName(person) : person.displayName}</h2>
                 <span className={person.status === "Encontrado" ? "is-found" : person.status === "Localizado" ? "is-localized" : "is-searching"}>
                   {person.status}
                 </span>
@@ -163,7 +187,8 @@ export function PeopleView({ counts = null, externalMetrics = null, hasMore = fa
                   </>
                 ) : null}
               </dl>
-              {person.description ? <p className="person-description">{person.description}</p> : null}
+              {person.description && !safeMode ? <p className="person-description">{person.description}</p> : null}
+              {person.description && safeMode ? <p className="person-description">{t.people.safeDescription}</p> : null}
               <footer>
                 <span>{person.verified ? t.people.verifiedOrigin : t.people.sourcePending}</span>
                 {person.isMinor ? <span>{t.people.minorProtected}</span> : null}

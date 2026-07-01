@@ -320,6 +320,7 @@ export function PublicApp() {
         activeView={activeView}
         language={language}
         onViewChange={navigateView}
+        pendingCount={pendingCount}
         serverSyncAvailable={serverSyncAvailable}
         setLanguage={setLanguage}
         t={t}

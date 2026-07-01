@@ -139,6 +139,7 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
           aria-pressed={showAffectedZone}
           className={showAffectedZone ? "is-active affected-toggle" : "affected-toggle"}
           onClick={() => setShowAffectedZone((value) => !value)}
+          title={t.map.affectedZoneNote}
           type="button"
         >
           {t.map.affectedZone}
@@ -177,6 +178,7 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
               {t.map.affectedSource}: USGS
             </a>
           ) : null}
+          {showAffectedZone ? <small className="legend-note">{t.map.affectedZoneNote}</small> : null}
         </div>
       </div>
     </div>

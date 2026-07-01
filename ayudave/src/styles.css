@@ -44,6 +44,12 @@
   button {
     cursor: pointer;
   }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid rgba(0, 111, 133, 0.42);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px #ffffff;
+  }
 }
 
 @layer components {
@@ -117,6 +123,10 @@
 
   .sync-status small {
     @apply col-start-2 text-xs leading-tight text-ayuda-muted;
+  }
+
+  .pending-sync-badge {
+    @apply inline-flex min-h-9 items-center rounded-[5px] border border-[#d49a00] bg-[#fff7df] px-3 text-xs font-black uppercase text-[#7a5800];
   }
 
   .battery-status {
@@ -637,6 +647,10 @@
 
   .map-legend .legend-source {
     @apply col-span-4 text-[11px] font-black text-ayuda-teal underline-offset-2 hover:underline;
+  }
+
+  .map-legend .legend-note {
+    @apply col-span-4 block max-w-[280px] text-[10px] font-bold leading-tight text-ayuda-muted;
   }
 
   .legend-confirmed {
@@ -1880,7 +1894,7 @@
   }
 
   .utility-popover ul {
-    @apply m-0 grid list-none gap-1 p-0 text-xs font-bold text-ayuda-teal-dark;
+    @apply m-0 grid max-h-[260px] list-none gap-1 overflow-auto p-0 text-xs font-bold text-ayuda-teal-dark;
   }
 
   .utility-popover li {
@@ -2009,6 +2023,32 @@
     @apply border-ayuda-teal bg-[#e7f5f8] text-ayuda-teal;
   }
 
+  .people-safe-mode {
+    @apply grid items-center gap-3 rounded border border-[#b8d8e0] bg-[#f4fbfd] p-3;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .people-safe-mode strong,
+  .people-safe-mode span {
+    @apply block leading-tight;
+  }
+
+  .people-safe-mode strong {
+    @apply text-sm text-ayuda-teal-dark;
+  }
+
+  .people-safe-mode span {
+    @apply mt-1 text-xs font-bold text-ayuda-muted;
+  }
+
+  .people-safe-mode button {
+    @apply min-h-10 rounded border border-ayuda-line bg-white px-3 text-xs font-black uppercase text-ayuda-muted;
+  }
+
+  .people-safe-mode button.is-active {
+    @apply border-ayuda-teal bg-ayuda-teal text-white;
+  }
+
   .people-list {
     @apply grid gap-2.5;
   }
@@ -2016,6 +2056,10 @@
   .person-card {
     @apply grid gap-3 rounded border border-ayuda-line bg-[#fbfdfe] p-3;
     grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .person-card.is-safe-mode {
+    @apply bg-white;
   }
 
   .person-card img,
@@ -2729,7 +2773,7 @@
   }
 
   .view-mapa {
-    grid-template-rows: minmax(280px, 38vh) auto minmax(0, 1fr);
+    grid-template-rows: minmax(360px, 45vh) auto minmax(0, 1fr);
   }
 
   .map-search {
@@ -3021,6 +3065,15 @@
     padding-right: 8px;
   }
 
+  .people-safe-mode {
+    grid-template-columns: 1fr;
+  }
+
+  .people-safe-mode button {
+    min-height: 44px;
+    width: 100%;
+  }
+
   .report-panel {
     border-right: 0;
     border-bottom: 1px solid var(--color-ayuda-line);
@@ -3049,8 +3102,8 @@
   }
 
   .map-actions button {
-    min-height: 36px;
-    min-width: 40px;
+    min-height: 44px;
+    min-width: 44px;
     justify-content: center;
     padding: 0;
     font-size: 0;
@@ -3070,14 +3123,14 @@
 
   .map-validation-filter {
     left: 14px;
-    top: 100px;
+    top: 116px;
     max-width: calc(100% - 28px);
     padding: 4px;
   }
 
   .map-layer-filter {
     left: 14px;
-    top: 136px;
+    top: 168px;
     max-width: calc(100% - 28px);
     padding: 4px;
   }
@@ -3085,7 +3138,8 @@
   .map-type-filter button,
   .map-validation-filter button,
   .map-layer-filter button {
-    padding: 4px 8px;
+    min-height: 40px;
+    padding: 6px 10px;
   }
 
   .map-legend {
@@ -3096,6 +3150,11 @@
   .map-legend .legend-source {
     grid-column: 1 / -1;
     white-space: normal;
+  }
+
+  .map-legend .legend-note {
+    grid-column: 1 / -1;
+    max-width: 100%;
   }
 
   .content-grid {
@@ -3179,7 +3238,7 @@
     flex: 0 0 auto;
     justify-content: center;
     min-width: 0;
-    min-height: 34px;
+    min-height: 44px;
     padding-left: 8px;
     padding-right: 8px;
     white-space: nowrap;
