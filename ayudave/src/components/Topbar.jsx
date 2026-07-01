@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { languages } from "../lib/i18n";
 
 export function Topbar({ activeView, language, onViewChange, serverSyncAvailable, setLanguage, t }) {
+  const headerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const tabs = [
     ["mapa", "map", t.nav.map],
@@ -17,9 +18,29 @@ export function Topbar({ activeView, language, onViewChange, serverSyncAvailable
     onViewChange(view);
   }
 
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    function handlePointerDown(event) {
+      if (headerRef.current?.contains(event.target)) return;
+      setMenuOpen(false);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
   return (
-    <header className="topbar">
-      <a className="brand" href="#mapa" aria-label="AyudaVE inicio">
+    <header className="topbar" ref={headerRef}>
+      <a className="brand" href="#mapa" aria-label="AyudaVE inicio" onClick={() => setMenuOpen(false)}>
         <img src="./assets/icon.svg" alt="" />
         <strong>AyudaVE</strong>
       </a>
