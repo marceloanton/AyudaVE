@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
-import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, Pane, Polygon, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { redactSensitiveText, trustKey, typeClass } from "../lib/report-utils";
 
 const venezuelaCenter = [8.2, -66.6];
@@ -17,6 +17,42 @@ const typeColors = {
   Traslado: "#2383b5",
   "Energia/senal": "#d49a00",
 };
+
+const affectedZoneSource = {
+  label: "USGS",
+  url: "https://www.usgs.gov/programs/landslide-hazards/science/2026-venezuela-sequence-earthquake-triggered-landslide-hazards",
+};
+
+const affectedZones = [
+  {
+    id: "north-central-impact-belt",
+    level: "major",
+    name: "Referencia norte-centro",
+    positions: [
+      [10.95, -69.25],
+      [10.75, -68.15],
+      [10.45, -66.95],
+      [10.15, -66.35],
+      [9.65, -66.55],
+      [9.35, -67.35],
+      [9.45, -68.45],
+      [9.9, -69.35],
+    ],
+  },
+  {
+    id: "yaracuy-carabobo-reference",
+    level: "high",
+    name: "Referencia Yaracuy-Carabobo",
+    positions: [
+      [10.75, -69.05],
+      [10.55, -68.25],
+      [10.05, -68.05],
+      [9.72, -68.55],
+      [9.92, -69.25],
+      [10.35, -69.45],
+    ],
+  },
+];
 
 function isValidCoordinate(lat, lng) {
   return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -10 && lat <= 16 && lng >= -82 && lng <= -52;
@@ -101,6 +137,40 @@ function clusterPoints(points, map, zoom) {
   });
 
   return { clusters, singles };
+}
+
+function heatColor(score) {
+  if (score >= 10) return "#ef4f49";
+  if (score >= 6) return "#ef6c16";
+  if (score >= 3) return "#d49a00";
+  return "#006f85";
+}
+
+function buildHeatPoints(points) {
+  const buckets = new Map();
+  points.forEach((point) => {
+    const [lat, lng] = point.position;
+    const key = `${Math.round(lat * 4) / 4}:${Math.round(lng * 4) / 4}`;
+    const score = point.kind === "report"
+      ? (point.item.priority === "Alta" ? 4 : point.item.priority === "Media" ? 2 : 1)
+      : 0.7;
+    const existing = buckets.get(key) || { count: 0, lat: 0, lng: 0, score: 0 };
+    buckets.set(key, {
+      count: existing.count + 1,
+      lat: existing.lat + lat,
+      lng: existing.lng + lng,
+      score: existing.score + score,
+    });
+  });
+
+  return Array.from(buckets.entries())
+    .filter(([, bucket]) => bucket.count >= 3)
+    .map(([key, bucket]) => ({
+      id: key,
+      count: bucket.count,
+      position: [bucket.lat / bucket.count, bucket.lng / bucket.count],
+      score: bucket.score,
+    }));
 }
 
 function FitMap({ disabled, points }) {
@@ -270,7 +340,66 @@ function ClusteredPointLayer({ onSelectReport, selectedReport, t, visiblePoints 
   );
 }
 
-export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, showHelpPoints, showReports, t }) {
+function AffectedZoneLayer({ t }) {
+  return (
+    <>
+      {affectedZones.map((zone) => (
+        <Polygon
+          className={`affected-zone affected-zone-${zone.level}`}
+          interactive={false}
+          key={zone.id}
+          pane="affectedZonePane"
+          pathOptions={{
+            color: zone.level === "high" ? "#ef4f49" : "#d49a00",
+            fillColor: zone.level === "high" ? "#ef4f49" : "#d49a00",
+            fillOpacity: zone.level === "high" ? 0.12 : 0.08,
+            opacity: 0.78,
+            weight: zone.level === "high" ? 2 : 1.5,
+          }}
+          positions={zone.positions}
+        >
+          <Popup autoPanPaddingBottomRight={[40, 40]} autoPanPaddingTopLeft={[40, 150]} maxWidth={280} minWidth={220}>
+            <strong>{t.map.affectedZone}</strong>
+            <span>{zone.name}</span>
+            <small>{t.map.affectedZoneNote}</small>
+            <a href={affectedZoneSource.url} rel="noreferrer" target="_blank">
+              {t.map.source}: {affectedZoneSource.label}
+            </a>
+          </Popup>
+        </Polygon>
+      ))}
+    </>
+  );
+}
+
+function HeatLayer({ points, t }) {
+  const heatPoints = useMemo(() => buildHeatPoints(points), [points]);
+
+  return (
+    <>
+      {heatPoints.map((point) => (
+        <CircleMarker
+          center={point.position}
+          className="heat-point"
+          fillColor={heatColor(point.score)}
+          fillOpacity={Math.min(0.42, 0.13 + point.score * 0.018)}
+          interactive={false}
+          key={point.id}
+          pane="heatPane"
+          pathOptions={{ color: heatColor(point.score), opacity: 0.18, weight: 1 }}
+          radius={Math.min(54, 20 + Math.sqrt(point.score) * 9)}
+        >
+          <Popup>
+            <strong>{t.map.heatLayer}</strong>
+            <span>{point.count} {t.map.clusterItems}</span>
+          </Popup>
+        </CircleMarker>
+      ))}
+    </>
+  );
+}
+
+export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, showAffectedZone, showHeat, showHelpPoints, showReports, t }) {
   const reportPoints = useMemo(
     () => reports
       .map((report) => ({ item: report, kind: "report", position: toPoint(report) }))
@@ -308,8 +437,12 @@ export function RealMap({ helpPoints, onSelectReport, reports, selectedReport, s
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <Pane className="affected-zone-pane" name="affectedZonePane" style={{ zIndex: 330 }} />
+      <Pane className="heat-pane" name="heatPane" style={{ zIndex: 340 }} />
       <FitMap disabled={Boolean(selectedReport)} points={visiblePoints} />
       <FocusSelectedReport report={selectedReport} />
+      {showAffectedZone ? <AffectedZoneLayer t={t} /> : null}
+      {showHeat ? <HeatLayer points={visiblePoints} t={t} /> : null}
       <ClusteredPointLayer
         onSelectReport={onSelectReport}
         selectedReport={selectedReport}

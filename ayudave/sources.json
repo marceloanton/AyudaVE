@@ -259,6 +259,14 @@
       "privacy": "Contexto y telefonos de emergencia. Enlazar o contrastar; no copiar contactos personales."
     },
     {
+      "id": "usgs_venezuela_earthquake_ground_failure",
+      "name": "USGS - Venezuela earthquake ground failure reference",
+      "url": "https://www.usgs.gov/programs/landslide-hazards/science/2026-venezuela-sequence-earthquake-triggered-landslide-hazards",
+      "category": "seismic_reference",
+      "sync": "manual_reference",
+      "privacy": "Referencia publica para contexto sismico y deslizamientos. La geometria mostrada por AyudaVE es aproximada y no delimita dano confirmado ni reemplaza mapas oficiales."
+    },
+    {
       "id": "icrc_restoring_family_links",
       "name": "ICRC - Restoring Family Links",
       "url": "https://www.icrc.org/",

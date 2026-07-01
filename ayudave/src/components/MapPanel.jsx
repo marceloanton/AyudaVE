@@ -21,10 +21,13 @@ function matchesValidationFilter(item, validationFilter) {
 
 const maxMapReports = 180;
 const maxMapHelpPoints = 320;
+const affectedZoneSourceUrl = "https://www.usgs.gov/programs/landslide-hazards/science/2026-venezuela-sequence-earthquake-triggered-landslide-hazards";
 
 export function MapPanel({ currentType, helpPoints, onSelectReport, reports, query, selectedReport, setCurrentType, setQuery, t }) {
   const [showReports, setShowReports] = useState(true);
   const [showHelpPoints, setShowHelpPoints] = useState(true);
+  const [showHeat, setShowHeat] = useState(false);
+  const [showAffectedZone, setShowAffectedZone] = useState(true);
   const [validationFilter, setValidationFilter] = useState("all");
   const filteredReports = useMemo(
     () => reports.filter((report) => matchesValidationFilter(report, validationFilter)),
@@ -123,12 +126,32 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
           </button>
         ))}
       </div>
+      <div className="map-layer-filter" role="group" aria-label={t.map.filterByLayer}>
+        <button
+          aria-pressed={showHeat}
+          className={showHeat ? "is-active heat-toggle" : "heat-toggle"}
+          onClick={() => setShowHeat((value) => !value)}
+          type="button"
+        >
+          {t.map.heatLayer}
+        </button>
+        <button
+          aria-pressed={showAffectedZone}
+          className={showAffectedZone ? "is-active affected-toggle" : "affected-toggle"}
+          onClick={() => setShowAffectedZone((value) => !value)}
+          type="button"
+        >
+          {t.map.affectedZone}
+        </button>
+      </div>
       <div className="map-canvas" aria-label={t.map.canvas}>
         <RealMap
           helpPoints={filteredHelpPoints}
           onSelectReport={onSelectReport}
           reports={filteredReports}
           selectedReport={selectedReport}
+          showAffectedZone={showAffectedZone}
+          showHeat={showHeat}
           showHelpPoints={showHelpPoints}
           showReports={showReports}
           t={t}
@@ -147,6 +170,13 @@ export function MapPanel({ currentType, helpPoints, onSelectReport, reports, que
           ) : null}
           <em className="legend-confirmed">{mapCounts.confirmed} {t.map.confirmedShort}</em>
           <em className="legend-pending">{mapCounts.pending} {t.map.pendingShort}</em>
+          {showHeat ? <em className="legend-heat">{t.map.heatLayer}</em> : null}
+          {showAffectedZone ? <em className="legend-affected">{t.map.affectedZone}</em> : null}
+          {showAffectedZone ? (
+            <a className="legend-source" href={affectedZoneSourceUrl} rel="noreferrer" target="_blank">
+              {t.map.affectedSource}: USGS
+            </a>
+          ) : null}
         </div>
       </div>
     </div>

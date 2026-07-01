@@ -575,9 +575,14 @@
     @apply left-5 top-[114px] flex max-w-[calc(100%-40px)] gap-1.5 overflow-x-auto rounded bg-white/95 p-1.5 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
   }
 
+  .map-layer-filter {
+    @apply absolute left-5 top-[162px] z-[800] flex max-w-[calc(100%-40px)] gap-1.5 overflow-x-auto rounded bg-white/95 p-1.5 shadow-[0_8px_18px_rgba(26,45,51,0.08)];
+  }
+
   .tabs,
   .map-type-filter,
   .map-validation-filter,
+  .map-layer-filter,
   .list-tabs {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -586,23 +591,34 @@
   .tabs::-webkit-scrollbar,
   .map-type-filter::-webkit-scrollbar,
   .map-validation-filter::-webkit-scrollbar,
+  .map-layer-filter::-webkit-scrollbar,
   .list-tabs::-webkit-scrollbar {
     display: none;
   }
 
   .map-type-filter button,
-  .map-validation-filter button {
+  .map-validation-filter button,
+  .map-layer-filter button {
     @apply whitespace-nowrap rounded border border-ayuda-line bg-white px-3 py-1.5 text-xs font-black text-ayuda-muted;
   }
 
   .map-type-filter button.is-active,
-  .map-validation-filter button.is-active {
+  .map-validation-filter button.is-active,
+  .map-layer-filter button.is-active {
     @apply border-ayuda-teal bg-[#e7f5f8] text-ayuda-teal;
+  }
+
+  .map-layer-filter button.heat-toggle.is-active {
+    @apply border-[#d49a00] bg-[#fff7df] text-[#7a5800];
+  }
+
+  .map-layer-filter button.affected-toggle.is-active {
+    @apply border-ayuda-red bg-[#fff0ef] text-ayuda-red;
   }
 
   .map-legend {
     @apply absolute bottom-4 left-4 z-[500] grid rounded bg-white/95 px-3 py-2 shadow-[0_8px_22px_rgba(26,45,51,0.16)];
-    grid-template-columns: auto auto;
+    grid-template-columns: repeat(4, auto);
     column-gap: 8px;
     row-gap: 2px;
   }
@@ -616,7 +632,11 @@
   }
 
   .map-legend em {
-    @apply col-span-2 mt-1 inline-flex rounded px-2 py-1 text-[11px] font-black not-italic;
+    @apply mt-1 inline-flex rounded px-2 py-1 text-[11px] font-black not-italic;
+  }
+
+  .map-legend .legend-source {
+    @apply col-span-4 text-[11px] font-black text-ayuda-teal underline-offset-2 hover:underline;
   }
 
   .legend-confirmed {
@@ -629,6 +649,14 @@
 
   .legend-visible {
     @apply bg-[#eef4f6] text-ayuda-teal-dark;
+  }
+
+  .legend-heat {
+    @apply bg-[#fff7df] text-[#7a5800];
+  }
+
+  .legend-affected {
+    @apply bg-[#fff0ef] text-ayuda-red;
   }
 
   .leaflet-container {
@@ -669,6 +697,15 @@
   .cluster-marker strong {
     @apply font-black leading-none;
     font-size: clamp(12px, calc(var(--cluster-size) * 0.34), 18px);
+  }
+
+  .heat-point {
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  .affected-zone {
+    stroke-dasharray: 8 6;
   }
 
   .map-panel .leaflet-top.leaflet-left {
@@ -2724,6 +2761,11 @@
     padding: 6px;
   }
 
+  .map-layer-filter {
+    top: 150px;
+    padding: 6px;
+  }
+
   .map-legend {
     bottom: 10px;
     left: 10px;
@@ -3033,9 +3075,27 @@
     padding: 4px;
   }
 
+  .map-layer-filter {
+    left: 14px;
+    top: 136px;
+    max-width: calc(100% - 28px);
+    padding: 4px;
+  }
+
   .map-type-filter button,
-  .map-validation-filter button {
+  .map-validation-filter button,
+  .map-layer-filter button {
     padding: 4px 8px;
+  }
+
+  .map-legend {
+    max-width: calc(100% - 120px);
+    grid-template-columns: auto auto;
+  }
+
+  .map-legend .legend-source {
+    grid-column: 1 / -1;
+    white-space: normal;
   }
 
   .content-grid {
