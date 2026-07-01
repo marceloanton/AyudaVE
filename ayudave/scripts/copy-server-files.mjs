@@ -21,5 +21,8 @@ await cp(join(root, "ayuda-terremoto-venezuela.html"), join(dist, "ayuda-terremo
 await cp(join(root, "como-reportar-ayuda-venezuela.html"), join(dist, "como-reportar-ayuda-venezuela.html"));
 await cp(join(root, "directorio-ayuda-venezuela.html"), join(dist, "directorio-ayuda-venezuela.html"));
 await cp(join(root, "datos-abiertos-ayudave.html"), join(dist, "datos-abiertos-ayudave.html"));
+await cp(join(root, "api-ayudave.html"), join(dist, "api-ayudave.html"));
+await cp(join(root, "estado-tecnico-ayudave.html"), join(dist, "estado-tecnico-ayudave.html"));
+await cp(join(root, "fuentes-ayudave.html"), join(dist, "fuentes-ayudave.html"));
 await mkdir(join(dist, "data"), { recursive: true });
 await cp(join(root, "data", ".htaccess"), join(dist, "data", ".htaccess"));

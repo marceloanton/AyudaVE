@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Estado tecnico AyudaVE | Sincronizacion</title>
+    <meta
+      name="description"
+      content="Estado legible de sincronizacion AyudaVE: base de datos, cron, fuentes externas y registros sincronizados."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://ayudave.mranalytics.info/estado-tecnico-ayudave.html" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #eef4f6;
+        --surface: #ffffff;
+        --line: #d8e2e6;
+        --text: #18292e;
+        --muted: #58676d;
+        --teal: #006f85;
+        --teal-dark: #00576a;
+        --green: #2ca365;
+        --amber: #d49a00;
+        --red: #ef4f49;
+        --soft: #f6fbfc;
+        --warn: #fff7df;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.55 Inter, "Segoe UI", Arial, sans-serif; }
+      main { max-width: 1080px; margin: 0 auto; padding: 32px 18px 44px; }
+      section { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 22px; }
+      h1, h2, h3 { color: var(--teal-dark); line-height: 1.12; }
+      h1 { margin: 0 0 10px; font-size: clamp(1.7rem, 3vw, 2.45rem); }
+      h2 { margin: 0 0 14px; font-size: 1.25rem; }
+      h3 { margin: 0 0 6px; font-size: 1rem; }
+      p { margin: 0 0 12px; color: var(--muted); }
+      a { color: var(--teal); font-weight: 800; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .button-link { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border: 1px solid var(--teal); border-radius: 6px; background: var(--teal); color: #fff; padding: 0 14px; text-decoration: none; }
+      .button-link.secondary { background: #fff; color: var(--teal); }
+      .summary-grid, .source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+      .metric, .source-card { border: 1px solid var(--line); border-radius: 8px; background: var(--soft); padding: 14px; }
+      .metric strong { display: block; color: var(--teal-dark); font-size: 1.55rem; line-height: 1; }
+      .metric span { display: block; margin-top: 4px; color: var(--muted); font-weight: 800; text-transform: uppercase; font-size: .78rem; }
+      .badge { display: inline-flex; min-height: 24px; align-items: center; border-radius: 999px; padding: 0 9px; font-weight: 900; font-size: .78rem; }
+      .ok { background: #e9f7ec; color: var(--green); }
+      .warn { background: var(--warn); color: #805d00; }
+      .bad { background: #fde8e7; color: var(--red); }
+      .source-card dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 0; }
+      .source-card dt { color: var(--muted); font-size: .72rem; font-weight: 900; text-transform: uppercase; }
+      .source-card dd { margin: 0; color: var(--teal-dark); font-weight: 900; }
+      .notice { background: var(--warn); border-color: #f0d28b; }
+      @media (max-width: 720px) {
+        main { padding: 18px 10px 32px; }
+        section { padding: 16px; }
+        .source-card dl { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h1>Estado tecnico AyudaVE</h1>
+        <p>
+          Vista legible de sincronizacion, base de datos, fuentes externas y cron.
+          Esta pagina esta pensada para usuarios y operadores; el JSON queda disponible para sistemas.
+        </p>
+        <div class="actions">
+          <a class="button-link" href="./datos-abiertos-ayudave.html">Volver a datos abiertos</a>
+          <a class="button-link secondary" href="./api.php?action=sync_status">Ver JSON tecnico</a>
+          <a class="button-link secondary" href="./fuentes-ayudave.html">Ver fuentes</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>Resumen operativo</h2>
+        <div class="summary-grid" id="summary">
+          <article class="metric"><strong>...</strong><span>Cargando estado</span></article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Fuentes sincronizadas</h2>
+        <div class="source-grid" id="sources"></div>
+      </section>
+
+      <section class="notice">
+        <h2>Como leer este estado</h2>
+        <p>
+          "A validar" significa que la fuente externa esta visible para contraste, pero requiere confirmacion local
+          antes de mover recursos. "Confirmados" indica validacion de origen o seguimiento comunitario.
+        </p>
+      </section>
+    </main>
+    <script>
+      const summaryRoot = document.getElementById("summary");
+      const sourcesRoot = document.getElementById("sources");
+
+      function fmtDate(value) {
+        if (!value) return "Sin fecha";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString("es", { dateStyle: "short", timeStyle: "short" });
+      }
+
+      function badge(ok, warnText = "A revisar") {
+        if (ok === true) return '<span class="badge ok">OK</span>';
+        if (ok === false) return `<span class="badge bad">${warnText}</span>`;
+        return '<span class="badge warn">Sin dato</span>';
+      }
+
+      function renderStatus(data) {
+        const sources = Array.isArray(data.sources) ? data.sources : [];
+        const cronOk = data.cron?.lastOk ?? null;
+        const pending = sources.reduce((total, item) => total + Number(item.pending || 0), 0);
+        const confirmed = sources.reduce((total, item) => total + Number(item.confirmed || 0), 0);
+        summaryRoot.innerHTML = `
+          <article class="metric"><strong>${data.totalRecords ?? 0}</strong><span>Registros totales</span></article>
+          <article class="metric"><strong>${sources.length}</strong><span>Fuentes</span></article>
+          <article class="metric"><strong>${pending}</strong><span>A validar</span></article>
+          <article class="metric"><strong>${confirmed}</strong><span>Confirmados</span></article>
+          <article class="metric"><strong>${data.database ? "Activa" : "No"}</strong><span>Base de datos</span></article>
+          <article class="metric"><strong>${cronOk === true ? "Activo" : "Revisar"}</strong><span>Cron</span></article>
+        `;
+        sourcesRoot.innerHTML = sources.length
+          ? sources.map((source) => `
+              <article class="source-card">
+                <h3>${source.source || "Fuente"}</h3>
+                <p>${source.category || "Sin categoria"} · ${fmtDate(source.lastSyncedAt || source.lastUpdatedAt)}</p>
+                ${badge((source.total || 0) >= 0)}
+                <dl>
+                  <div><dt>Total</dt><dd>${source.total ?? 0}</dd></div>
+                  <div><dt>A validar</dt><dd>${source.pending ?? 0}</dd></div>
+                  <div><dt>Confirmados</dt><dd>${source.confirmed ?? 0}</dd></div>
+                </dl>
+              </article>
+            `).join("")
+          : '<article class="source-card"><h3>Sin fuentes</h3><p>No hay fuentes externas reportadas por el servidor.</p></article>';
+      }
+
+      fetch("./api.php?action=sync_status", { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error("No se pudo leer sync_status");
+          const contentType = res.headers.get("content-type") || "";
+          if (!contentType.includes("application/json")) {
+            throw new Error("El backend PHP no esta disponible en este entorno.");
+          }
+          return res.json();
+        })
+        .then(renderStatus)
+        .catch((error) => {
+          summaryRoot.innerHTML = `
+            <article class="metric"><strong>Revisar</strong><span>Estado no disponible</span></article>
+            <article class="metric"><strong>PHP</strong><span>${error.message}</span></article>
+          `;
+          sourcesRoot.innerHTML = '<article class="source-card"><h3>Estado no disponible</h3><p>En hosting con PHP activo esta vista muestra cron, base de datos y fuentes. Usa el enlace JSON tecnico para revisar la respuesta directa.</p></article>';
+        });
+    </script>
+  </body>
+</html>

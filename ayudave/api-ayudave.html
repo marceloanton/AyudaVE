@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API AyudaVE | Endpoints publicos</title>
+    <meta
+      name="description"
+      content="Vista legible del contrato OpenAPI de AyudaVE: endpoints publicos, parametros, formatos y reglas de privacidad."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://ayudave.mranalytics.info/api-ayudave.html" />
+    <link rel="service-desc" type="application/openapi+json" href="https://ayudave.mranalytics.info/openapi.json" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #eef4f6;
+        --surface: #ffffff;
+        --line: #d8e2e6;
+        --text: #18292e;
+        --muted: #58676d;
+        --teal: #006f85;
+        --teal-dark: #00576a;
+        --soft: #f6fbfc;
+        --warn: #fff7df;
+        --warn-line: #f0d28b;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.55 Inter, "Segoe UI", Arial, sans-serif; }
+      main { max-width: 1080px; margin: 0 auto; padding: 32px 18px 44px; }
+      section { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 22px; }
+      h1, h2, h3 { color: var(--teal-dark); line-height: 1.12; }
+      h1 { margin: 0 0 10px; font-size: clamp(1.7rem, 3vw, 2.45rem); }
+      h2 { margin: 0 0 14px; font-size: 1.25rem; }
+      h3 { margin: 0 0 6px; font-size: 1rem; }
+      p { margin: 0 0 12px; color: var(--muted); }
+      a { color: var(--teal); font-weight: 800; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+      code { overflow-wrap: anywhere; border-radius: 4px; background: #e7f3f6; color: #113a43; padding: 2px 5px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92em; }
+      .hero { display: grid; gap: 12px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .button-link { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border: 1px solid var(--teal); border-radius: 6px; background: var(--teal); color: #fff; padding: 0 14px; text-decoration: none; }
+      .button-link.secondary { background: #fff; color: var(--teal); }
+      .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+      .summary-grid article, .endpoint-card, .schema-card { border: 1px solid var(--line); border-radius: 8px; background: var(--soft); padding: 14px; }
+      .summary-grid strong { display: block; color: var(--teal-dark); font-size: 1.55rem; line-height: 1; }
+      .summary-grid span { display: block; margin-top: 4px; color: var(--muted); font-weight: 800; text-transform: uppercase; font-size: .78rem; }
+      .endpoint-list { display: grid; gap: 12px; }
+      .endpoint-card { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; }
+      .method { display: inline-flex; width: fit-content; min-height: 30px; align-items: center; border-radius: 5px; background: #e7f5f8; color: var(--teal); padding: 0 10px; font-weight: 900; }
+      .params { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .param { border: 1px solid var(--line); border-radius: 999px; background: #fff; padding: 3px 8px; color: var(--teal-dark); font-size: .85rem; font-weight: 800; }
+      .schema-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+      .notice { border-color: var(--warn-line); background: var(--warn); }
+      .status { min-height: 22px; color: var(--muted); font-weight: 800; }
+      @media (max-width: 720px) {
+        main { padding: 18px 10px 32px; }
+        section { padding: 16px; }
+        .endpoint-card { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>API AyudaVE</h1>
+        <p>
+          Esta es la version legible del contrato OpenAPI. Sirve para entender que se puede consumir,
+          que parametros acepta cada endpoint y que datos quedan fuera por privacidad.
+        </p>
+        <div class="actions">
+          <a class="button-link" href="./datos-abiertos-ayudave.html">Volver a datos abiertos</a>
+          <a class="button-link secondary" href="./openapi.json">Ver OpenAPI JSON</a>
+          <a class="button-link secondary" href="./ayudave-public-export.schema.json">Ver JSON Schema</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>Resumen</h2>
+        <div class="summary-grid" id="summary">
+          <article><strong>API</strong><span>Cargando contrato</span></article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Endpoints</h2>
+        <div class="status" id="status">Leyendo openapi.json...</div>
+        <div class="endpoint-list" id="endpoints"></div>
+      </section>
+
+      <section>
+        <h2>Esquemas principales</h2>
+        <div class="schema-grid" id="schemas"></div>
+      </section>
+
+      <section class="notice">
+        <h2>Regla de uso</h2>
+        <p>
+          Los endpoints publicos son de lectura y no deben usarse para publicar contactos privados.
+          Si replicas datos, conserva atribucion a AyudaVE y a la fuente original.
+        </p>
+      </section>
+    </main>
+    <script>
+      const endpointRoot = document.getElementById("endpoints");
+      const schemaRoot = document.getElementById("schemas");
+      const summaryRoot = document.getElementById("summary");
+      const statusRoot = document.getElementById("status");
+
+      function text(value, fallback = "Sin descripcion") {
+        return String(value || fallback);
+      }
+
+      function renderParams(parameters = []) {
+        if (!parameters.length) return "";
+        return `<div class="params">${parameters
+          .map((param) => `<span class="param">${text(param.name)}${param.required ? " *" : ""}</span>`)
+          .join("")}</div>`;
+      }
+
+      function renderOpenApi(api) {
+        const paths = Object.entries(api.paths || {});
+        const schemas = Object.keys(api.components?.schemas || {});
+        summaryRoot.innerHTML = `
+          <article><strong>${text(api.openapi, "3.x")}</strong><span>Version OpenAPI</span></article>
+          <article><strong>${paths.length}</strong><span>Rutas documentadas</span></article>
+          <article><strong>${schemas.length}</strong><span>Esquemas</span></article>
+          <article><strong>${text(api.info?.version, "1.0")}</strong><span>Version API</span></article>
+        `;
+        endpointRoot.innerHTML = paths
+          .flatMap(([path, methods]) =>
+            Object.entries(methods).map(([method, spec]) => `
+              <article class="endpoint-card">
+                <span class="method">${method.toUpperCase()}</span>
+                <div>
+                  <h3><code>${path}</code></h3>
+                  <p><strong>${text(spec.summary)}</strong></p>
+                  <p>${text(spec.description)}</p>
+                  ${renderParams(spec.parameters)}
+                </div>
+              </article>
+            `)
+          )
+          .join("");
+        schemaRoot.innerHTML = schemas
+          .slice(0, 12)
+          .map((name) => {
+            const schema = api.components.schemas[name] || {};
+            const props = Object.keys(schema.properties || {});
+            return `
+              <article class="schema-card">
+                <h3>${name}</h3>
+                <p>${schema.type ? `Tipo: ${schema.type}` : "Esquema de respuesta o solicitud."}</p>
+                <p>${props.length ? `Campos: ${props.slice(0, 8).join(", ")}${props.length > 8 ? "..." : ""}` : "Sin campos listados."}</p>
+              </article>
+            `;
+          })
+          .join("");
+        statusRoot.textContent = "Contrato cargado correctamente.";
+      }
+
+      fetch("./openapi.json", { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error("No se pudo leer openapi.json");
+          return res.json();
+        })
+        .then(renderOpenApi)
+        .catch((error) => {
+          statusRoot.textContent = error.message;
+          endpointRoot.innerHTML = `
+            <article class="endpoint-card">
+              <span class="method">GET</span>
+              <div>
+                <h3><code>/api.php?action=export_public</code></h3>
+                <p>Feed JSON publico para sincronizar reportes y puntos de ayuda.</p>
+              </div>
+            </article>
+          `;
+        });
+    </script>
+  </body>
+</html>

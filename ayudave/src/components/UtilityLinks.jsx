@@ -92,13 +92,13 @@ export function UtilityLinks({ onNavigate, t }) {
             ))}
           </ul>
           <div className="utility-popover-actions">
-            <a href="./sources.json" rel="noreferrer" target="_blank">
+            <a href="./fuentes-ayudave.html">
               {t.utility.sourcesJson}
             </a>
             <a href="./api.php?action=metadata" rel="noreferrer" target="_blank">
               {t.utility.metadata}
             </a>
-            <a href="./api.php?action=sync_status" rel="noreferrer" target="_blank">
+            <a href="./estado-tecnico-ayudave.html">
               {t.utility.syncStatus}
             </a>
           </div>
@@ -106,7 +106,7 @@ export function UtilityLinks({ onNavigate, t }) {
             <a href="./api.php?action=export_public" rel="noreferrer" target="_blank">
               Feed JSON
             </a>
-            <a href="./openapi.json" rel="noreferrer" target="_blank">
+            <a href="./api-ayudave.html">
               OpenAPI
             </a>
             <a href="./ayudave-public-export.schema.json" rel="noreferrer" target="_blank">

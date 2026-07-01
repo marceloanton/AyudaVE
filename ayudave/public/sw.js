@@ -1,4 +1,4 @@
-const CACHE_NAME = "ayudave-shell-v4";
+const CACHE_NAME = "ayudave-shell-v5";
 const STATIC_URLS = [
   "./",
   "./index.html",
@@ -8,6 +8,9 @@ const STATIC_URLS = [
   "./como-reportar-ayuda-venezuela.html",
   "./directorio-ayuda-venezuela.html",
   "./datos-abiertos-ayudave.html",
+  "./api-ayudave.html",
+  "./estado-tecnico-ayudave.html",
+  "./fuentes-ayudave.html",
   "./sources.json",
   "./openapi.json",
   "./ayudave-public-export.schema.json",

@@ -39,7 +39,7 @@ export function SourceFreshness({ syncStatus, t }) {
         ) : null}
       </ul>
       <div className="source-freshness-actions">
-        <a href="./api.php?action=sync_status" rel="noreferrer" target="_blank">
+        <a href="./estado-tecnico-ayudave.html">
           {cronOk === false ? t.sourceFreshness.cronIssue : t.sourceFreshness.open}
         </a>
         <a href="./datos-abiertos-ayudave.html">

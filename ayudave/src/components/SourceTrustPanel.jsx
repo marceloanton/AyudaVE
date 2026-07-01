@@ -28,7 +28,7 @@ export function SourceTrustPanel({ syncStatus, t }) {
       ) : (
         <span className="source-trust-empty">{t.sourceTrust.empty}</span>
       )}
-      <a href="api.php?action=sync_status" rel="noreferrer" target="_blank">{t.sourceTrust.open}</a>
+      <a href="./estado-tecnico-ayudave.html">{t.sourceTrust.open}</a>
     </article>
   );
 }

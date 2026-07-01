@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fuentes AyudaVE | Registro publico</title>
+    <meta
+      name="description"
+      content="Vista legible de fuentes sincronizadas y referencias externas usadas por AyudaVE."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://ayudave.mranalytics.info/fuentes-ayudave.html" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <style>
+      :root { --bg:#eef4f6; --surface:#fff; --line:#d8e2e6; --text:#18292e; --muted:#58676d; --teal:#006f85; --teal-dark:#00576a; --soft:#f6fbfc; --warn:#fff7df; --red:#ef4f49; --green:#2ca365; }
+      * { box-sizing: border-box; }
+      body { margin:0; background:var(--bg); color:var(--text); font:14px/1.55 Inter, "Segoe UI", Arial, sans-serif; }
+      main { max-width:1080px; margin:0 auto; padding:32px 18px 44px; }
+      section { margin-bottom:16px; border:1px solid var(--line); border-radius:8px; background:var(--surface); padding:22px; }
+      h1,h2,h3 { color:var(--teal-dark); line-height:1.12; }
+      h1 { margin:0 0 10px; font-size:clamp(1.7rem,3vw,2.45rem); }
+      h2 { margin:0 0 14px; font-size:1.25rem; }
+      h3 { margin:0 0 6px; font-size:1rem; }
+      p { margin:0 0 12px; color:var(--muted); }
+      a { color:var(--teal); font-weight:800; text-decoration-thickness:2px; text-underline-offset:3px; }
+      .actions { display:flex; flex-wrap:wrap; gap:10px; }
+      .button-link { display:inline-flex; min-height:38px; align-items:center; justify-content:center; border:1px solid var(--teal); border-radius:6px; background:var(--teal); color:#fff; padding:0 14px; text-decoration:none; }
+      .button-link.secondary { background:#fff; color:var(--teal); }
+      .source-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; }
+      .source-card { border:1px solid var(--line); border-radius:8px; background:var(--soft); padding:14px; }
+      .tag { display:inline-flex; min-height:24px; align-items:center; border-radius:999px; background:#e7f5f8; color:var(--teal); padding:0 9px; font-weight:900; font-size:.78rem; }
+      .tag.manual, .tag.review { background:var(--warn); color:#805d00; }
+      .tag.private { background:#fde8e7; color:var(--red); }
+      .tag.active { background:#e9f7ec; color:var(--green); }
+      .trust { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+      .trust article { border:1px solid var(--line); border-radius:8px; background:var(--soft); padding:12px; }
+      @media (max-width:720px){ main{padding:18px 10px 32px;} section{padding:16px;} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h1>Fuentes AyudaVE</h1>
+        <p>
+          Registro legible de fuentes externas, referencias y politicas de privacidad.
+          El archivo JSON sigue disponible para integraciones automaticas.
+        </p>
+        <div class="actions">
+          <a class="button-link" href="./datos-abiertos-ayudave.html">Volver a datos abiertos</a>
+          <a class="button-link secondary" href="./sources.json">Ver sources.json</a>
+          <a class="button-link secondary" href="./estado-tecnico-ayudave.html">Estado tecnico</a>
+        </div>
+      </section>
+      <section>
+        <h2>Niveles de confianza</h2>
+        <div class="trust" id="trust"></div>
+      </section>
+      <section>
+        <h2>Fuentes y referencias</h2>
+        <div class="source-grid" id="sources"></div>
+      </section>
+    </main>
+    <script>
+      const trustRoot = document.getElementById("trust");
+      const sourcesRoot = document.getElementById("sources");
+      function syncClass(value) {
+        if (String(value).includes("active")) return "active";
+        if (String(value).includes("private")) return "private";
+        if (String(value).includes("review")) return "review";
+        return "manual";
+      }
+      function renderSources(data) {
+        const trust = data.trust_levels || {};
+        const sources = Array.isArray(data.sources) ? data.sources : [];
+        trustRoot.innerHTML = Object.entries(trust).map(([key, value]) => `
+          <article><h3>${key}</h3><p>${value}</p></article>
+        `).join("");
+        sourcesRoot.innerHTML = sources.map((source) => `
+          <article class="source-card">
+            <h3>${source.name || source.id}</h3>
+            <p><span class="tag ${syncClass(source.sync)}">${source.sync || "manual"}</span></p>
+            <p><strong>${source.category || "referencia"}</strong></p>
+            <p>${source.privacy || "Revisar fuente antes de republicar datos."}</p>
+            ${source.url ? `<a href="${source.url}" rel="noreferrer" target="_blank">Abrir fuente</a>` : ""}
+          </article>
+        `).join("");
+      }
+      fetch("./sources.json", { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error("No se pudo leer sources.json");
+          return res.json();
+        })
+        .then(renderSources)
+        .catch((error) => {
+          trustRoot.innerHTML = `<article><h3>Error</h3><p>${error.message}</p></article>`;
+          sourcesRoot.innerHTML = '<article class="source-card"><h3>Fuentes no disponibles</h3><p>Usa el enlace JSON para revisar el archivo directo.</p></article>';
+        });
+    </script>
+  </body>
+</html>
