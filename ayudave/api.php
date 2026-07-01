@@ -413,7 +413,7 @@ function redact_sensitive_text(string $text): array
         '/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/iu',
         '/\+\d{1,3}[\s.\-]*(?:\d[\s.\-]*){7,14}\d/u',
         '/(?:\+?58[\s.\-]*)?(?:0?4(?:12|14|16|24|26)|2\d{2})[\s.\-]*\d{3}[\s.\-]*\d{2}[\s.\-]*\d{2}/u',
-        '/\b(?:c\.?\s*i\.?|cedula|cedula\s+de\s+identidad|dni|documento)[:\s.#-]*(?:[VEJG][\s.\-]*)?\d{1,3}(?:[\s.\-]?\d{3}){1,3}\b/iu',
+        '/\b(?:c\.?\s*i\.?|cedula|cedula\s+de\s+identidad|dni|documento)[:\s.#-]*(?:nro\.?|nº|no\.?)?[:\s.#-]*(?:[VEJG][\s.\-]*)?\d{1,3}(?:[\s.\-]?\d{3}){1,3}(?!\d)/iu',
         '/\b(?:[VEJG][\s.\-]*)?\d{1,3}(?:[\s.\-]?\d{3}){2,3}\b/iu',
         '/\b(?:V|E|J|G)?[\s.\-]?\d{6,9}\b/iu',
     ];
