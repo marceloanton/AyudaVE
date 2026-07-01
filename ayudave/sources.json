@@ -20,57 +20,112 @@
     {
       "id": "terremotovenezuela_reports",
       "name": "Terremoto Venezuela App",
-      "url": "https://terremotovenezuela.app/"
+      "url": "https://terremotovenezuela.app/",
+      "category": "reports",
+      "sync": "active_sync",
+      "privacy": "Reportes publicos de mapa. Mantener atribucion y estado de validacion visible."
+    },
+    {
+      "id": "terremotovenezuela_missing",
+      "name": "Terremoto Venezuela App - Personas",
+      "url": "https://terremotovenezuela.app/api/missing?status=all",
+      "category": "people",
+      "sync": "review_before_enable",
+      "privacy": "Personas desaparecidas/encontradas. Importar solo con reduccion de datos sensibles y estados conservadores."
+    },
+    {
+      "id": "terremotovenezuela_buildings",
+      "name": "Terremoto Venezuela - Edificios",
+      "url": "https://terremotovenezuela.com/",
+      "category": "damage_reports",
+      "sync": "review_before_enable",
+      "privacy": "Edificios danados y seguridad estructural. No publicar datos personales ni ubicaciones privadas innecesarias."
     },
     {
       "id": "centros_acopio",
       "name": "Centros de Acopio VE",
-      "url": "https://centrosdeacopiove.com/"
+      "url": "https://centrosdeacopiove.com/",
+      "category": "aid_points",
+      "sync": "active_sync",
+      "privacy": "Centros de acopio publicos. Publicar solo contactos institucionales o del propio centro."
+    },
+    {
+      "id": "centros_acopio_telefonos",
+      "name": "Centros de Acopio VE - Telefonos",
+      "url": "https://centrosdeacopiove.com/data/phones_v2.js?v=8",
+      "category": "emergency_directory",
+      "sync": "manual_reference",
+      "privacy": "Telefonos de emergencia. Mostrar solo lineas institucionales o publicas verificables."
+    },
+    {
+      "id": "centros_acopio_voluntarios",
+      "name": "Centros de Acopio VE - Voluntarios",
+      "url": "https://centrosdeacopiove.com/voluntarios-proxy.php",
+      "category": "volunteers",
+      "sync": "private_admin_only",
+      "privacy": "Voluntarios y contactos personales. No publicar en vistas abiertas; usar solo para derivacion privada con permiso."
     },
     {
       "id": "venezuela_reporta_sitios",
       "name": "Venezuela Reporta",
-      "url": "https://venezuelareporta.org/api-abierta"
+      "url": "https://venezuelareporta.org/api-abierta",
+      "category": "aid_points",
+      "sync": "active_sync",
+      "privacy": "API publica con atribucion requerida. Los puntos se muestran como fuente externa y con validacion de origen cuando aplica."
     },
     {
       "id": "venezuela_reporta_personas",
       "name": "Venezuela Reporta - Personas",
       "url": "https://venezuelareporta.org/api/v1/personas",
+      "category": "people",
+      "sync": "active_sync",
       "privacy": "Se sincronizan fichas publicas con reduccion de datos sensibles. Menores se muestran con nombre reducido y sin fotos no difuminadas."
     },
     {
       "id": "venezuela_reporta_ingresos",
       "name": "Venezuela Reporta - Ingresos y listados",
       "url": "https://venezuelareporta.org/api/v1/ingresos",
+      "category": "people",
+      "sync": "active_sync",
       "privacy": "Se marcan como Localizado. Aparecer en un listado no confirma por si solo que una persona este a salvo; validar en la ficha original."
     },
     {
       "id": "localizados_venezuela",
       "name": "Localizados Venezuela",
       "url": "https://localizadosvenezuela.com/api/v1/localizados",
+      "category": "people",
+      "sync": "active_sync",
       "privacy": "Se importan como Localizado con atribucion. No se publican documentos ni contactos en AyudaVE."
     },
     {
       "id": "desaparecidosve",
       "name": "Desaparecidos VE",
       "url": "https://desaparecidosve.com/",
+      "category": "people",
       "sync": "manual_reference",
       "privacy": "Referencia de cifras y contraste. No se importa automaticamente hasta tener API publica estable o permiso claro."
     },
     {
       "id": "refugios_venezuela",
       "name": "Refugios Venezuela",
-      "url": "https://refugiosvenezuela.com/api"
+      "url": "https://refugiosvenezuela.com/api",
+      "category": "shelters",
+      "sync": "active_sync",
+      "privacy": "Refugios publicos. Mantener estado de fuente externa y validar disponibilidad antes de movilizar personas."
     },
     {
       "id": "acopios_refugios",
       "name": "Venezuela Resiste - Acopios y Refugios",
-      "url": "https://acopios-refugios.vercel.app/"
+      "url": "https://acopios-refugios.vercel.app/",
+      "category": "aid_points",
+      "sync": "active_sync",
+      "privacy": "Acopios y refugios moderados. Respetar columnas publicas y descartar contactos personales no institucionales."
     },
     {
       "id": "acopiove",
       "name": "AcopioVE",
       "url": "https://acopiove.org/",
+      "category": "aid_points",
       "sync": "review_before_enable",
       "privacy": "Sincronizar solo puntos publicos de ayuda. No publicar contactos personales sin permiso."
     },
@@ -78,6 +133,7 @@
       "id": "vzla_ayuda",
       "name": "VZLA Ayuda",
       "url": "https://vzlayuda.com/",
+      "category": "community_aid",
       "sync": "manual_reference",
       "privacy": "No importar automaticamente solicitudes u ofrecimientos hasta tener API publica o permiso claro."
     },
@@ -85,15 +141,113 @@
       "id": "hazlo_hoy_venezuela_ayuda",
       "name": "Hazlo Hoy - Venezuela Ayuda",
       "url": "https://venezuela-ayuda.vercel.app/",
+      "category": "community_aid",
       "sync": "manual_reference",
       "privacy": "Usar para contrastar mapas, telefonos y medidas de apoyo. No mezclar personas desaparecidas con reportes de ayuda."
+    },
+    {
+      "id": "ayuda_venezuela_talosware",
+      "name": "Ayuda Venezuela - Talosware",
+      "url": "https://ayuda-venezuela.talosware.com.ve/",
+      "category": "aid_points",
+      "sync": "review_before_enable",
+      "privacy": "Centros, voluntarios, servicios y listados. Importar solo puntos publicos; no copiar telefonos personales ni personas sin permiso claro."
     },
     {
       "id": "info_venezuela_terremoto_2026",
       "name": "Info Venezuela Terremoto 2026",
       "url": "https://infovenezuelaterremoto2026.vercel.app/docs",
+      "category": "aid_points",
       "sync": "review_before_enable",
       "privacy": "Activar solo si la documentacion y la licencia permiten republicar puntos de ayuda."
+    },
+    {
+      "id": "reportavnzla",
+      "name": "ReportaVNZLA",
+      "url": "https://reportavnzla.com/",
+      "category": "people",
+      "sync": "manual_reference",
+      "privacy": "Personas perdidas, rescatadas y fallecidas con documentos visibles en origen. No importar automaticamente hasta tener contrato de API y reglas de redaccion."
+    },
+    {
+      "id": "venezuelatebusca",
+      "name": "Venezuela Te Busca",
+      "url": "https://venezuelatebusca.com/",
+      "category": "people",
+      "sync": "manual_reference",
+      "privacy": "Personas desaparecidas. Revisar disponibilidad, API, permiso y tratamiento de menores antes de sincronizar."
+    },
+    {
+      "id": "desaparecidos_terremoto_venezuela",
+      "name": "Desaparecidos Terremoto Venezuela",
+      "url": "https://desaparecidosterremotovenezuela.com/",
+      "category": "people",
+      "sync": "manual_reference",
+      "privacy": "Personas desaparecidas/localizadas. No mezclar estados encontrado/localizado sin validacion independiente."
+    },
+    {
+      "id": "sos_venezuela_2026",
+      "name": "SOS Venezuela 2026",
+      "url": "https://sosvenezuela2026.com/",
+      "category": "live_map",
+      "sync": "manual_reference",
+      "privacy": "Mapa colaborativo con danos, busqueda de personas y refugios. Revisar API/licencia y proteccion anti-saqueo antes de reutilizar datos."
+    },
+    {
+      "id": "quedate_ayuda",
+      "name": "Quedate - Ayuda",
+      "url": "https://ayuda.quedate.net/",
+      "category": "community_aid",
+      "sync": "review_before_enable",
+      "privacy": "Ayuda comunitaria. Activar solo si los datos son publicos, verificables y no exponen contactos personales."
+    },
+    {
+      "id": "quedate",
+      "name": "Quedate",
+      "url": "https://quedate.net/",
+      "category": "community_aid",
+      "sync": "manual_reference",
+      "privacy": "Referencia regional. No sincronizar automaticamente sin permiso o API publica estable."
+    },
+    {
+      "id": "lo_necesito_venezuela",
+      "name": "Lo Necesito Venezuela",
+      "url": "https://lonecesitovenezuela.com/",
+      "category": "community_aid",
+      "sync": "manual_reference",
+      "privacy": "Solicitudes u ofrecimientos de ayuda. Revisar datos personales antes de cualquier importacion."
+    },
+    {
+      "id": "caracas_ayuda",
+      "name": "Caracas Ayuda",
+      "url": "https://caracasayuda.com/",
+      "category": "community_aid",
+      "sync": "manual_reference",
+      "privacy": "Referencia local. No sincronizar automaticamente hasta confirmar API, licencia y alcance de datos personales."
+    },
+    {
+      "id": "veneconnect_apoyo_terremoto",
+      "name": "Veneconnect - Apoyo Terremoto",
+      "url": "https://veneconnect.com/apoyo-terremoto",
+      "category": "aid_points",
+      "sync": "manual_reference",
+      "privacy": "Fundaciones, acopios y apoyo de diaspora. Usar como referencia hasta tener dataset publico reutilizable."
+    },
+    {
+      "id": "hzl_app",
+      "name": "Hazlo Hoy / hzl.app",
+      "url": "https://hzl.app/",
+      "category": "emergency_directory",
+      "sync": "manual_reference",
+      "privacy": "Contexto y telefonos de emergencia. Enlazar o contrastar; no copiar contactos personales."
+    },
+    {
+      "id": "icrc_restoring_family_links",
+      "name": "ICRC - Restoring Family Links",
+      "url": "https://www.icrc.org/",
+      "category": "institutional_reference",
+      "sync": "manual_reference",
+      "privacy": "Referencia institucional para busqueda familiar. Enlazar recursos oficiales; no copiar casos personales."
     }
   ]
 }

@@ -3,8 +3,9 @@
 Relevamiento hecho el 2026-06-28. Toda fuente externa debe entrar como
 `Sin validar` salvo que sea una entidad institucional o una fuente ya moderada.
 No guardar telefonos, emails ni contactos personales en vistas publicas.
-Actualizado el 2026-06-30 para separar fuentes sincronizables, referencias
-manuales y posibles extensiones regionales fuera de Venezuela.
+Actualizado el 2026-07-01 para ampliar el registro unico de fuentes,
+separar sincronizacion automatica de referencias manuales y bloquear por
+defecto las fuentes con cedulas, telefonos, fotos o datos de menores.
 
 ## Fuentes recomendadas
 
@@ -19,6 +20,7 @@ manuales y posibles extensiones regionales fuera de Venezuela.
 | acopios-refugios.vercel.app | Apps Script JSONP | Acopios y refugios moderados | 203 puntos: 174 acopios, 29 refugios | Importar como puntos de ayuda. Respeta columnas publicas del origen. |
 | ayuda-venezuela.talosware.com.ve | Google Sheet CSV | Centros/puntos de ayuda | 144 filas | Importar como puntos de ayuda, deduplicando contra centrosdeacopiove. |
 | acopiove.org | Sitio/API a revisar | Acopios, refugios y techo solidario | No contado en esta pasada | Candidato para puntos de ayuda regionales. Activar solo despues de confirmar API/licencia. |
+| ayuda-venezuela.talosware.com.ve | Web publica / Google Sheet CSV | Acopios, voluntarios, servicios, canales y listados | 163 centros, 11 profesionales, 23 estados, 5 paises en web publica | Importar solo puntos publicos y deduplicar. No copiar contactos personales ni personas/listados sin permiso. |
 | infovenezuelaterremoto2026.vercel.app/docs | API documentada a revisar | Centros de acopio | No contado en esta pasada | Candidato para sincronizar puntos publicos si la documentacion sigue operativa. |
 
 ## Fuentes viables pero con cautela
@@ -30,6 +32,8 @@ manuales y posibles extensiones regionales fuera de Venezuela.
 | terremotovenezuela2026.vercel.app | No usar por ahora | El script de Venezuela Ayuda indica que su API devuelve `410 Gone`. |
 | reportavnzla.com | Requiere revision posterior | Tiene repo publico y usa Neon/Postgres. No se encontro API publica directa en la primera pasada. |
 | veneconnect.com/apoyo-terremoto | Referencia manual | Tiene datos embebidos de fundaciones/acopios, pero no se detecto array facil de centros en la primera pasada. |
+| ayuda.quedate.net | Requiere revision posterior | Figura como plataforma aliada. Activar solo si hay API publica y permiso claro. |
+| sosvenezuela2026.com | Requiere revision posterior | Mapa colaborativo con ubicaciones sensibles. Revisar licencia, API y proteccion anti-saqueo antes de copiar datos. |
 
 ## Referencias manuales / no sincronizar todavia
 
@@ -38,6 +42,40 @@ manuales y posibles extensiones regionales fuera de Venezuela.
 | vzlayuda.com | Enlazar como referencia comunitaria para solicitudes y ofrecimientos. | Puede contener datos de contacto o situaciones personales. No se encontro API publica documentada. |
 | venezuela-ayuda.vercel.app | Comparar mapa, telefonos, medidas de apoyo y fuentes activas. | No importar personas desaparecidas ni voluntarios directos en AyudaVE. Solo usar API publica con atribucion y privacidad. |
 | Hazlo Hoy / hzl.app | Fuente de contexto y telefonos de emergencia. | Enlazar como informacion externa; no copiar contenido sensible ni contactos personales. |
+| reportavnzla.com | Derivar busquedas sensibles y contrastar cifras. | Publica datos personales visibles. No importar automaticamente hasta tener API/permiso y reglas de redaccion. |
+| venezuelatebusca.com | Derivar busquedas de personas. | Fuente de personas desaparecidas; requiere revisar API, permiso, menores y estados. |
+| desaparecidosterremotovenezuela.com | Derivar busquedas de personas y contrastar estados. | No mezclar estados localizado/encontrado sin validacion independiente. |
+| lonecesitovenezuela.com | Derivar solicitudes/ofrecimientos. | Puede contener datos personales o contactos. No sincronizar sin contrato de datos. |
+| caracasayuda.com | Referencia local de ayuda. | Revisar disponibilidad tecnica y licencia antes de reutilizar. |
+| veneconnect.com/apoyo-terremoto | Referencia de diaspora, fundaciones y acopios. | No se detecto dataset publico estable para copiar automaticamente. |
+| icrc.org | Enlazar busqueda familiar institucional. | No copiar casos personales; usar como recurso oficial complementario. |
+
+## Registro unico en sources.json
+
+`sources.json` es el inventario publico de AyudaVE. Cada fuente debe tener
+`id`, `name`, `url`, `category`, `sync` y `privacy`.
+
+Valores recomendados de `sync`:
+
+- `active_sync`: el cron o el admin pueden sincronizarla con reglas actuales.
+- `review_before_enable`: candidata tecnica; falta confirmar API/licencia o
+  redaccion de datos.
+- `manual_reference`: se muestra como fuente de consulta o derivacion, pero no
+  entra al import automatico.
+- `private_admin_only`: contiene datos personales; no debe exponerse en vistas
+  publicas.
+
+Categorias usadas:
+
+- `aid_points`: centros de acopio, servicios, puntos de ayuda.
+- `shelters`: refugios y albergues.
+- `reports`: necesidades, alertas y reportes de mapa.
+- `damage_reports`: estructuras o zonas danadas.
+- `people`: personas desaparecidas, localizadas, rescatadas o fallecidas.
+- `emergency_directory`: telefonos y canales de emergencia.
+- `community_aid`: solicitudes/ofrecimientos comunitarios.
+- `live_map`: mapas colaborativos con datos mixtos.
+- `institutional_reference`: fuentes oficiales o humanitarias para enlazar.
 
 ## Alcance regional
 
