@@ -308,6 +308,13 @@ export const referenceSources = [
     sync: "Enlazar recursos; no copiar casos personales.",
   },
   {
+    name: "Reuters Connect",
+    url: "https://www.reutersconnect.com/item/venezuela-raises-death-toll-to-1450-and-number-of-missing-to-over-70000-after-earthquakes/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX09XTFRBQ0JLMUNQOU4wWllERlhMQzlHWjAwQjlUQg",
+    scope: "Contexto periodistico",
+    use: "Contrastar cifras publicas y seguimiento general de rescate/ayuda.",
+    sync: "Referencia manual; contenido licenciable, no copiar texto, imagenes ni video.",
+  },
+  {
     name: "AcopioVE",
     url: "https://acopiove.org/",
     scope: "Venezuela y diaspora",

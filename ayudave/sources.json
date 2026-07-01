@@ -256,6 +256,14 @@
       "category": "institutional_reference",
       "sync": "manual_reference",
       "privacy": "Referencia institucional para busqueda familiar. Enlazar recursos oficiales; no copiar casos personales."
+    },
+    {
+      "id": "reuters_connect_venezuela_earthquake",
+      "name": "Reuters Connect - Venezuela earthquake coverage",
+      "url": "https://www.reutersconnect.com/item/venezuela-raises-death-toll-to-1450-and-number-of-missing-to-over-70000-after-earthquakes/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX09XTFRBQ0JLMUNQOU4wWllERlhMQzlHWjAwQjlUQg",
+      "category": "news_context",
+      "sync": "manual_reference",
+      "privacy": "Cobertura periodistica/licenciable para contexto y contraste de cifras. No copiar texto, imagenes o video; verificar restricciones y no usar como reporte operativo sin fuente primaria."
     }
   ]
 }

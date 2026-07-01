@@ -49,6 +49,7 @@ defecto las fuentes con cedulas, telefonos, fotos o datos de menores.
 | caracasayuda.com | Referencia local de ayuda. | Revisar disponibilidad tecnica y licencia antes de reutilizar. |
 | veneconnect.com/apoyo-terremoto | Referencia de diaspora, fundaciones y acopios. | No se detecto dataset publico estable para copiar automaticamente. |
 | icrc.org | Enlazar busqueda familiar institucional. | No copiar casos personales; usar como recurso oficial complementario. |
+| Reuters Connect | Contrastar cifras publicas y contexto periodistico de rescate/ayuda. | Contenido licenciable y, en algunos items, provisto por terceros. No copiar texto, imagenes o video; no usar como reporte operativo sin fuente primaria. |
 
 ## Registro unico en sources.json
 
@@ -76,6 +77,8 @@ Categorias usadas:
 - `community_aid`: solicitudes/ofrecimientos comunitarios.
 - `live_map`: mapas colaborativos con datos mixtos.
 - `institutional_reference`: fuentes oficiales o humanitarias para enlazar.
+- `news_context`: cobertura periodistica para contraste y contexto, no para
+  importacion automatica.
 
 ## Alcance regional
 
