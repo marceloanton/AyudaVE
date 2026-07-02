@@ -1,6 +1,6 @@
 {
   "schema": "ayudave-external-metrics-snapshot-v1",
-  "snapshotAt": "2026-07-01T18:57:13.428Z",
+  "snapshotAt": "2026-07-02T05:38:29.071Z",
   "source": {
     "id": "desaparecidos_terremoto_venezuela",
     "name": "Desaparecidos Terremoto Venezuela",
@@ -14,41 +14,41 @@
     "note": "Snapshot agregado sin fichas personales, fotos, documentos ni contactos."
   },
   "metrics": {
-    "totalPeople": 56047,
-    "withoutContact": 40279,
-    "localized": 15768,
-    "localizedHospital": 1188,
-    "localizedCenter": 7,
-    "reportedConcerns": 161,
+    "totalPeople": 54408,
+    "withoutContact": 38789,
+    "localized": 15619,
+    "localizedHospital": 1180,
+    "localizedCenter": 6,
+    "reportedConcerns": 125,
     "topRegions": [
       {
         "name": "La Guaira",
-        "total": 29917,
-        "withoutContact": 21310,
-        "localized": 8607
+        "total": 28687,
+        "withoutContact": 20204,
+        "localized": 8483
       },
       {
         "name": "Sin estado asignado",
-        "total": 23387,
-        "withoutContact": 17450,
+        "total": 23013,
+        "withoutContact": 17076,
         "localized": 5937
       },
       {
         "name": "Distrito Capital",
-        "total": 877,
-        "withoutContact": 311,
-        "localized": 566
+        "total": 884,
+        "withoutContact": 322,
+        "localized": 562
       },
       {
         "name": "Miranda",
-        "total": 578,
-        "withoutContact": 275,
-        "localized": 303
+        "total": 559,
+        "withoutContact": 269,
+        "localized": 290
       },
       {
         "name": "Aragua",
-        "total": 181,
-        "withoutContact": 149,
+        "total": 184,
+        "withoutContact": 152,
         "localized": 32
       }
     ]
